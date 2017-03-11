@@ -211,3 +211,19 @@ def test_kill_word(start_text, start_pos, end_text, end_pos):
     edit.kill_word()
     assert edit.text == end_text
     assert edit.edit_pos == end_pos
+
+
+@pytest.mark.parametrize('start_text, start_pos, end_text, end_pos', [
+    ('a', 0, 'a', 1),
+    ('a', 1, 'a', 1),
+    ('abc', 0, 'bac', 2),
+    ('abc', 1, 'bac', 2),
+    ('abc', 2, 'acb', 3),
+    ('abc', 3, 'acb', 3),
+])
+def test_transpose(start_text, start_pos, end_text, end_pos):
+    edit = ReadlineEdit(start_text)
+    edit.edit_pos = start_pos
+    edit.transpose_chars()
+    assert edit.text == end_text
+    assert edit.edit_pos == end_pos

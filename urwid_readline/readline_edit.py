@@ -72,6 +72,7 @@ class ReadlineEdit(urwid.Text):
             'meta d':         self.kill_word,
             'ctrl w':         self.backward_kill_word,
             'meta backspace': self.backward_kill_word,
+            'ctrl t':         self.transpose_chars,
         }
         if key in keymap:
             keymap[key]()
@@ -142,3 +143,12 @@ class ReadlineEdit(urwid.Text):
 
     def end_of_line(self):
         self.edit_pos = len(self.text)
+
+    def transpose_chars(self):
+        self.edit_pos = max(2, self.edit_pos + 1)
+        if len(self.text) >= 2:
+            self.text = (
+                self.text[0:self.edit_pos - 2]
+                + self.text[self.edit_pos - 1]
+                + self.text[self.edit_pos - 2]
+                + self.text[self.edit_pos:])
