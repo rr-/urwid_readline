@@ -3,10 +3,6 @@ import re
 import urwid
 
 
-_FIND_WORD_RE1 = re.compile(r'([a-zA-Z0-9_]+)')
-_FIND_WORD_RE2 = re.compile(r'([^a-zA-Z0-9_]+)')
-
-
 def _clamp(number, min_value, max_value):
     return max(min_value, min(max_value, number))
 
@@ -14,8 +10,16 @@ def _clamp(number, min_value, max_value):
 class ReadlineEdit(urwid.Text):
     signals = ['change']
 
-    def __init__(self, *args, **kwargs):
+    def __init__(
+            self,
+            *args,
+            word_chars=string.ascii_letters + string.digits + '_',
+            **kwargs):
         super().__init__(*args, **kwargs)
+        self._word_regex1 = re.compile(
+            '([%s]+)' % '|'.join(re.escape(ch) for ch in word_chars))
+        self._word_regex2 = re.compile(
+            '([^%s]+)' % '|'.join(re.escape(ch) for ch in word_chars))
         self._edit_pos = 0
 
     @property
@@ -96,14 +100,14 @@ class ReadlineEdit(urwid.Text):
             self.edit_pos += 1
 
     def backward_word(self):
-        iterator = _FIND_WORD_RE1.finditer(self.text[0:self.edit_pos][::-1])
+        iterator = self._word_regex1.finditer(self.text[0:self.edit_pos][::-1])
         for match in iterator:
             self.edit_pos -= match.end(1)
             return
         self.edit_pos = 0
 
     def forward_word(self):
-        iterator = _FIND_WORD_RE2.finditer(self.text[self.edit_pos:])
+        iterator = self._word_regex2.finditer(self.text[self.edit_pos:])
         for match in iterator:
             self.edit_pos += match.end(1)
             return
