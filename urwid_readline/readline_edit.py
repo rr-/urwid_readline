@@ -116,9 +116,9 @@ class ReadlineEdit(urwid.Text):
 
     def backward_delete_char(self):
         if self.edit_pos > 0:
-            self.text = (
-                self.text[0:self.edit_pos-1] + self.text[self.edit_pos:])
             self.edit_pos -= 1
+            self.text = (
+                self.text[0:self.edit_pos] + self.text[self.edit_pos+1:])
 
     def kill_whole_line(self):
         self.text = ''
