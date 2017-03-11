@@ -50,28 +50,28 @@ class ReadlineEdit(urwid.Text):
 
     def keypress(self, _size, key):
         keymap = {
-            'ctrl f':         self._forward_char,
-            'ctrl b':         self._backward_char,
-            'right':          self._forward_char,
-            'left':           self._backward_char,
-            'ctrl a':         self._beginning_of_line,
-            'ctrl e':         self._end_of_line,
-            'home':           self._beginning_of_line,
-            'end':            self._end_of_line,
-            'meta f':         self._forward_word,
-            'meta b':         self._backward_word,
-            'shift right':    self._forward_word,
-            'shift left':     self._backward_word,
+            'ctrl f':         self.forward_char,
+            'ctrl b':         self.backward_char,
+            'right':          self.forward_char,
+            'left':           self.backward_char,
+            'ctrl a':         self.beginning_of_line,
+            'ctrl e':         self.end_of_line,
+            'home':           self.beginning_of_line,
+            'end':            self.end_of_line,
+            'meta f':         self.forward_word,
+            'meta b':         self.backward_word,
+            'shift right':    self.forward_word,
+            'shift left':     self.backward_word,
 
-            'ctrl d':         self._delete_char,
-            'ctrl h':         self._backward_delete_char,
-            'delete':         self._delete_char,
-            'backspace':      self._backward_delete_char,
-            'ctrl u':         self._kill_whole_line,
-            'ctrl k':         self._kill_line,
-            'meta d':         self._kill_word,
-            'ctrl w':         self._backward_kill_word,
-            'meta backspace': self._backward_kill_word,
+            'ctrl d':         self.delete_char,
+            'ctrl h':         self.backward_delete_char,
+            'delete':         self.delete_char,
+            'backspace':      self.backward_delete_char,
+            'ctrl u':         self.kill_whole_line,
+            'ctrl k':         self.kill_line,
+            'meta d':         self.kill_word,
+            'ctrl w':         self.backward_kill_word,
+            'meta backspace': self.backward_kill_word,
         }
         if key in keymap:
             keymap[key]()
@@ -86,59 +86,59 @@ class ReadlineEdit(urwid.Text):
             self.text[0:self.edit_pos] + key + self.text[self.edit_pos:])
         self.edit_pos += 1
 
-    def _backward_char(self):
+    def backward_char(self):
         if self.edit_pos > 0:
             self.edit_pos -= 1
 
-    def _forward_char(self):
+    def forward_char(self):
         if self.edit_pos < len(self.text):
             self.edit_pos += 1
 
-    def _backward_word(self):
+    def backward_word(self):
         iterator = _FIND_WORD_RE1.finditer(self.text[0:self.edit_pos][::-1])
         for match in iterator:
             self.edit_pos -= match.end(1)
             return
         self.edit_pos = 0
 
-    def _forward_word(self):
+    def forward_word(self):
         iterator = _FIND_WORD_RE2.finditer(self.text[self.edit_pos:])
         for match in iterator:
             self.edit_pos += match.end(1)
             return
         self.edit_pos = len(self.text)
 
-    def _delete_char(self):
+    def delete_char(self):
         if self.edit_pos < len(self.text):
             self.text = (
                 self.text[0:self.edit_pos] + self.text[self.edit_pos+1:])
 
-    def _backward_delete_char(self):
+    def backward_delete_char(self):
         if self.edit_pos > 0:
             self.text = (
                 self.text[0:self.edit_pos-1] + self.text[self.edit_pos:])
             self.edit_pos -= 1
 
-    def _kill_whole_line(self):
+    def kill_whole_line(self):
         self.text = ''
         self.edit_pos = 0
 
-    def _kill_line(self):
+    def kill_line(self):
         self.text = self.text[0:self.edit_pos]
 
-    def _backward_kill_word(self):
+    def backward_kill_word(self):
         pos = self.edit_pos
-        self._backward_word()
+        self.backward_word()
         self.text = self.text[0:self.edit_pos] + self.text[pos:]
 
-    def _kill_word(self):
+    def kill_word(self):
         pos = self.edit_pos
-        self._forward_word()
+        self.forward_word()
         self.text = self.text[0:pos] + self.text[self.edit_pos:]
         self.edit_pos = pos
 
-    def _beginning_of_line(self):
+    def beginning_of_line(self):
         self.edit_pos = 0
 
-    def _end_of_line(self):
+    def end_of_line(self):
         self.edit_pos = len(self.text)
