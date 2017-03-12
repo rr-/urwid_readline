@@ -20,12 +20,12 @@ class ReadlineEdit(urwid.Text):
             *args,
             word_chars=string.ascii_letters + string.digits + '_',
             **kwargs):
+        self._edit_pos = 0
         super().__init__(*args, **kwargs)
         self._word_regex1 = re.compile(
             '([%s]+)' % '|'.join(re.escape(ch) for ch in word_chars))
         self._word_regex2 = re.compile(
             '([^%s]+)' % '|'.join(re.escape(ch) for ch in word_chars))
-        self._edit_pos = 0
 
     @property
     def edit_pos(self):
@@ -40,10 +40,13 @@ class ReadlineEdit(urwid.Text):
     def text(self):
         return self.get_text()[0]
 
+    def set_text(self, text):
+        super().set_text(text)
+        self._edit_pos = _clamp(self._edit_pos, 0, len(text))
+
     @text.setter
     def text(self, text):
         self.set_text(text)
-        self.edit_pos = _clamp(self.edit_pos, 0, len(text))
         urwid.signals.emit_signal(self, 'change', self, text)
 
     def render(self, size, focus=False):
