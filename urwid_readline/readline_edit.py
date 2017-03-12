@@ -1,10 +1,15 @@
-import string
 import re
+import string
+import unicodedata
 import urwid
 
 
 def _clamp(number, min_value, max_value):
     return max(min_value, min(max_value, number))
+
+
+def _is_valid_key(ch):
+    return urwid.util.is_wide_char(ch, 0) or (len(ch) == 1 and ord(ch) >= 32)
 
 
 class ReadlineEdit(urwid.Text):
@@ -46,7 +51,11 @@ class ReadlineEdit(urwid.Text):
         canv = urwid.Text.render(self, (maxcol,))
         if focus:
             canv = urwid.CompositeCanvas(canv)
-            canv.cursor = (min(self._edit_pos, maxcol - 1), 0)
+            canv.cursor = (
+                min(
+                    urwid.util.calc_width(self._text, 0, self._edit_pos),
+                    maxcol - 1),
+                0)
         return canv
 
     def selectable(self):
@@ -81,7 +90,7 @@ class ReadlineEdit(urwid.Text):
         if key in keymap:
             keymap[key]()
             return None
-        elif key in string.printable:
+        elif _is_valid_key(key):
             self._insert_char_at_cusor(key)
             return None
         return key
