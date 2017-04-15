@@ -12,57 +12,26 @@ def _is_valid_key(ch):
     return urwid.util.is_wide_char(ch, 0) or (len(ch) == 1 and ord(ch) >= 32)
 
 
-class ReadlineEdit(urwid.Text):
-    signals = ['change']
+class ReadlineEdit(urwid.Edit):
+    ignore_focus = False
 
     def __init__(
             self,
             *args,
             word_chars=string.ascii_letters + string.digits + '_',
             **kwargs):
-        self._edit_pos = 0
         super().__init__(*args, **kwargs)
         self._word_regex1 = re.compile(
             '([%s]+)' % '|'.join(re.escape(ch) for ch in word_chars))
         self._word_regex2 = re.compile(
             '([^%s]+)' % '|'.join(re.escape(ch) for ch in word_chars))
 
-    @property
-    def edit_pos(self):
-        return self._edit_pos
+    def set_edit_pos(self, pos):
+        super().set_edit_pos(_clamp(pos, 0, len(self._edit_text)))
 
-    @edit_pos.setter
-    def edit_pos(self, pos):
-        self._edit_pos = _clamp(pos, 0, len(self.text))
-        self._invalidate()
-
-    @property
-    def text(self):
-        return self.get_text()[0]
-
-    def set_text(self, text):
-        super().set_text(text)
-        self._edit_pos = _clamp(self._edit_pos, 0, len(text))
-
-    @text.setter
-    def text(self, text):
-        self.set_text(text)
-        urwid.signals.emit_signal(self, 'change', self, text)
-
-    def render(self, size, focus=False):
-        (maxcol,) = size
-        canv = urwid.Text.render(self, (maxcol,))
-        if focus:
-            canv = urwid.CompositeCanvas(canv)
-            canv.cursor = (
-                min(
-                    urwid.util.calc_width(self._text, 0, self._edit_pos),
-                    maxcol - 1),
-                0)
-        return canv
-
-    def selectable(self):
-        return True
+    def set_edit_text(self, edit_text):
+        super().set_edit_text(edit_text)
+        self.set_edit_pos(_clamp(self._edit_pos, 0, len(edit_text)))
 
     def keypress(self, _size, key):
         keymap = {
@@ -92,79 +61,87 @@ class ReadlineEdit(urwid.Text):
         }
         if key in keymap:
             keymap[key]()
+            self._invalidate()
             return None
         elif _is_valid_key(key):
             self._insert_char_at_cusor(key)
+            self._invalidate()
             return None
         return key
 
     def _insert_char_at_cusor(self, key):
-        self.text = (
-            self.text[0:self.edit_pos] + key + self.text[self.edit_pos:])
-        self.edit_pos += 1
+        self.set_edit_text(
+            self._edit_text[0:self._edit_pos]
+            + key
+            + self._edit_text[self._edit_pos:])
+        self.set_edit_pos(self._edit_pos + 1)
 
     def backward_char(self):
-        if self.edit_pos > 0:
-            self.edit_pos -= 1
+        if self._edit_pos > 0:
+            self.set_edit_pos(self._edit_pos - 1)
 
     def forward_char(self):
-        if self.edit_pos < len(self.text):
-            self.edit_pos += 1
+        if self._edit_pos < len(self._edit_text):
+            self.set_edit_pos(self._edit_pos + 1)
 
     def backward_word(self):
-        iterator = self._word_regex1.finditer(self.text[0:self.edit_pos][::-1])
-        for match in iterator:
-            self.edit_pos -= match.end(1)
+        for match in self._word_regex1.finditer(
+                self._edit_text[0:self._edit_pos][::-1]):
+            self.set_edit_pos(self._edit_pos - match.end(1))
             return
-        self.edit_pos = 0
+        self.set_edit_pos(0)
 
     def forward_word(self):
-        iterator = self._word_regex2.finditer(self.text[self.edit_pos:])
-        for match in iterator:
-            self.edit_pos += match.end(1)
+        for match in self._word_regex2.finditer(
+                self._edit_text[self._edit_pos:]):
+            self.set_edit_pos(self._edit_pos + match.end(1))
             return
-        self.edit_pos = len(self.text)
+        self.set_edit_pos(len(self._edit_text))
 
     def delete_char(self):
-        if self.edit_pos < len(self.text):
-            self.text = (
-                self.text[0:self.edit_pos] + self.text[self.edit_pos+1:])
+        if self._edit_pos < len(self._edit_text):
+            self.set_edit_text(
+                self._edit_text[0:self._edit_pos]
+                + self._edit_text[self._edit_pos+1:])
 
     def backward_delete_char(self):
-        if self.edit_pos > 0:
-            self.edit_pos -= 1
-            self.text = (
-                self.text[0:self.edit_pos] + self.text[self.edit_pos+1:])
+        if self._edit_pos > 0:
+            self.set_edit_pos(self._edit_pos - 1)
+            self.set_edit_text(
+                self._edit_text[0:self._edit_pos]
+                + self._edit_text[self._edit_pos+1:])
 
     def kill_whole_line(self):
-        self.text = ''
-        self.edit_pos = 0
+        self.set_edit_text('')
+        self.set_edit_pos(0)
 
     def kill_line(self):
-        self.text = self.text[0:self.edit_pos]
+        self.set_edit_text(self._edit_text[0:self._edit_pos])
 
     def backward_kill_word(self):
-        pos = self.edit_pos
+        pos = self._edit_pos
         self.backward_word()
-        self.text = self.text[0:self.edit_pos] + self.text[pos:]
+        self.set_edit_text(
+            self._edit_text[0:self._edit_pos] + self._edit_text[pos:])
 
     def kill_word(self):
-        pos = self.edit_pos
+        pos = self._edit_pos
         self.forward_word()
-        self.text = self.text[0:pos] + self.text[self.edit_pos:]
-        self.edit_pos = pos
+        self.set_edit_text(
+            self._edit_text[0:pos] + self._edit_text[self._edit_pos:])
+        self.set_edit_pos(pos)
 
     def beginning_of_line(self):
-        self.edit_pos = 0
+        self.set_edit_pos(0)
 
     def end_of_line(self):
-        self.edit_pos = len(self.text)
+        self.set_edit_pos(len(self._edit_text))
 
     def transpose_chars(self):
-        self.edit_pos = max(2, self.edit_pos + 1)
-        if len(self.text) >= 2:
-            self.text = (
-                self.text[0:self.edit_pos - 2]
-                + self.text[self.edit_pos - 1]
-                + self.text[self.edit_pos - 2]
-                + self.text[self.edit_pos:])
+        self.set_edit_pos(max(2, self._edit_pos + 1))
+        if len(self._edit_text) >= 2:
+            self.set_edit_text(
+                self._edit_text[0:self._edit_pos - 2]
+                + self._edit_text[self._edit_pos - 1]
+                + self._edit_text[self._edit_pos - 2]
+                + self._edit_text[self._edit_pos:])
