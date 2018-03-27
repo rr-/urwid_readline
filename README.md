@@ -29,10 +29,10 @@ Supported operations (names consistent with bash):
 - `kill-line`
 - `kill-whole-line`
 - `transpose-chars`
+- autocomplete
 
 Notable unsupported operations (let me know if you need these):
 
 - word transposing
 - clipboard
 - history, undo
-- autocomplete

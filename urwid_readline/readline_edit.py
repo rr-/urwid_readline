@@ -8,6 +8,14 @@ def _is_valid_key(ch):
     return urwid.util.is_wide_char(ch, 0) or (len(ch) == 1 and ord(ch) >= 32)
 
 
+class AutocompleteState:
+    def __init__(self, prefix, infix, suffix):
+        self.prefix = prefix
+        self.infix = infix
+        self.suffix = suffix
+        self.num = 0
+
+
 class ReadlineEdit(urwid.Edit):
     ignore_focus = False
 
@@ -21,8 +29,17 @@ class ReadlineEdit(urwid.Edit):
             '([%s]+)' % '|'.join(re.escape(ch) for ch in word_chars))
         self._word_regex2 = re.compile(
             '([^%s]+)' % '|'.join(re.escape(ch) for ch in word_chars))
+        self._autocomplete_state = None
+        self._autocomplete_func = None
+        self._autocomplete_delims = ' \t\n;'
 
     def keypress(self, _size, key):
+        if key == 'tab' and self._autocomplete_func:
+            self._complete()
+            return None
+        else:
+            self._autocomplete_state = None
+
         keymap = {
             'ctrl f':         self.forward_char,
             'ctrl b':         self.backward_char,
@@ -134,3 +151,41 @@ class ReadlineEdit(urwid.Edit):
                 + self._edit_text[self._edit_pos - 1]
                 + self._edit_text[self._edit_pos - 2]
                 + self._edit_text[self._edit_pos:])
+
+    def enable_autocomplete(self, func):
+        self._autocomplete_func = func
+        self._autocomplete_state = None
+
+    def set_completer_delims(self, delimiters):
+        self._autocomplete_delims = delimiters
+
+    def _complete(self):
+        if self._autocomplete_state:
+            self._autocomplete_state.num += 1
+        else:
+            text_before_caret = self.edit_text[0:self.edit_pos]
+            text_after_caret = self.edit_text[self.edit_pos:]
+
+            group = re.escape(self._autocomplete_delims)
+            match = re.match(
+                '^(?P<prefix>.*[' + group + '])(?P<infix>.*?)$',
+                text_before_caret)
+            if match:
+                prefix = match.group('prefix')
+                infix = match.group('infix')
+            else:
+                prefix = ''
+                infix = text_before_caret
+            suffix = text_after_caret
+
+            self._autocomplete_state = AutocompleteState(prefix, infix, suffix)
+
+        state = self._autocomplete_state
+
+        match = self._autocomplete_func(state.infix, state.num)
+        if not match:
+            match = state.infix
+            self._autocomplete_state = None
+
+        self.edit_text = state.prefix + match + state.suffix
+        self.edit_pos = len(state.prefix) + len(match)

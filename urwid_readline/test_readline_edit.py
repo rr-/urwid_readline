@@ -215,3 +215,130 @@ def test_transpose(start_text, start_pos, end_text, end_pos):
     edit.transpose_chars()
     assert edit.text == end_text
     assert edit.edit_pos == end_pos
+
+
+@pytest.mark.parametrize('start_text, start_pos, source, positions', [
+    (
+        '',
+        0,
+        ['start', 'stop', 'next'],
+        [
+            ('start', 5),
+            ('stop', 4),
+            ('next', 4),
+            ('', 0),
+            ('start', 5),
+        ]
+    ),
+
+    (
+        'non-matching',
+        12,
+        ['start', 'stop', 'next'],
+        [
+            ('non-matching', 12),
+            ('non-matching', 12),
+        ]
+    ),
+
+    (
+        's',
+        1,
+        ['start', 'stop', 'next'],
+        [
+            ('start', 5),
+            ('stop', 4),
+            ('s', 1),
+        ]
+    ),
+
+    (
+        'trailing',
+        0,
+        ['start', 'stop', 'next'],
+        [
+            ('starttrailing', 5),
+            ('stoptrailing', 4),
+            ('nexttrailing', 4),
+            ('trailing', 0),
+        ]
+    ),
+
+    (
+        'trailing trailing',
+        0,
+        ['start', 'stop', 'next'],
+        [
+            ('starttrailing trailing', 5),
+            ('stoptrailing trailing', 4),
+            ('nexttrailing trailing', 4),
+            ('trailing trailing', 0),
+        ]
+    ),
+
+    (
+        'strailing trailing',
+        1,
+        ['start', 'stop', 'next'],
+        [
+            ('starttrailing trailing', 5),
+            ('stoptrailing trailing', 4),
+            ('strailing trailing', 1),
+        ]
+    ),
+
+    (
+        'preceding s',
+        11,
+        ['start', 'stop', 'next'],
+        [
+            ('preceding start', 15),
+            ('preceding stop', 14),
+            ('preceding s', 11),
+        ]
+    ),
+])
+def test_enable_autocomplete(start_text, start_pos, source, positions):
+    def compl(text, state):
+        tmp = (
+            [c for c in source if c and c.startswith(text)]
+            if text
+            else source)
+        try:
+            return tmp[state]
+        except IndexError:
+            return None
+
+    edit = ReadlineEdit(edit_text=start_text, edit_pos=start_pos)
+    edit.enable_autocomplete(compl)
+    for position in positions:
+        expected_text, expected_pos = position
+        edit.keypress(None, 'tab')
+        assert edit.edit_text == expected_text
+        assert edit.edit_pos == expected_pos
+
+
+def test_enable_autocomplete_clear_state():
+    source = ['start', 'stop', 'next']
+
+    def compl(text, state):
+        tmp = (
+            [c for c in source if c and c.startswith(text)]
+            if text
+            else source)
+        try:
+            return tmp[state]
+        except IndexError:
+            return None
+
+    edit = ReadlineEdit(edit_text='s', edit_pos=1)
+    edit.enable_autocomplete(compl)
+    edit.keypress(None, 'tab')
+    assert edit.edit_text == 'start'
+    assert edit.edit_pos == 5
+    edit.keypress(None, 'home')
+    edit.keypress(None, 'right')
+    assert edit.edit_pos == 1
+    edit.keypress(None, 'tab')
+    assert edit.edit_text == 'starttart'
+    assert edit.edit_pos == 5
