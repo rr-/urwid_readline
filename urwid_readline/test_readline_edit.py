@@ -3,7 +3,7 @@ from urwid_readline import ReadlineEdit
 
 
 def test_edit_pos_clamp():
-    edit = ReadlineEdit('asd')
+    edit = ReadlineEdit(edit_text='asd', edit_pos=0)
     assert edit.edit_pos == 0
     edit.edit_pos = 100
     assert edit.edit_pos == 3
@@ -12,8 +12,7 @@ def test_edit_pos_clamp():
 
 
 def test_backward_char():
-    edit = ReadlineEdit('ab')
-    edit.edit_pos = 2
+    edit = ReadlineEdit(edit_text='ab', edit_pos=2)
     edit.backward_char()
     assert edit.edit_pos == 1
     edit.backward_char()
@@ -23,7 +22,7 @@ def test_backward_char():
 
 
 def test_forward_char():
-    edit = ReadlineEdit('ab')
+    edit = ReadlineEdit(edit_text='ab', edit_pos=0)
     edit.forward_char()
     assert edit.edit_pos == 1
     edit.forward_char()
@@ -33,15 +32,13 @@ def test_forward_char():
 
 
 def test_beginnining_of_line():
-    edit = ReadlineEdit('ab')
-    edit.edit_pos = 2
+    edit = ReadlineEdit(edit_text='ab', edit_pos=2)
     edit.beginning_of_line()
     assert edit.edit_pos == 0
 
 
 def test_end_of_line():
-    edit = ReadlineEdit('ab')
-    edit.edit_pos = 0
+    edit = ReadlineEdit(edit_text='ab', edit_pos=0)
     edit.end_of_line()
     assert edit.edit_pos == 2
 
@@ -71,8 +68,7 @@ def test_end_of_line():
     ("xx'xx x", 3, 0),
 ])
 def test_backward_word(start_text, start_pos, end_pos):
-    edit = ReadlineEdit(start_text)
-    edit.edit_pos = start_pos
+    edit = ReadlineEdit(edit_text=start_text, edit_pos=start_pos)
     edit.backward_word()
     assert edit.edit_pos == end_pos
 
@@ -101,8 +97,7 @@ def test_backward_word(start_text, start_pos, end_pos):
     ("xx'xx x", 3, 6),
 ])
 def test_forward_word(start_text, start_pos, end_pos):
-    edit = ReadlineEdit(start_text)
-    edit.edit_pos = start_pos
+    edit = ReadlineEdit(edit_text=start_text, edit_pos=start_pos)
     edit.forward_word()
     assert edit.edit_pos == end_pos
 
@@ -114,8 +109,7 @@ def test_forward_word(start_text, start_pos, end_pos):
     ('abc', 3, 'abc', 3),
 ])
 def test_delete_char(start_text, start_pos, end_text, end_pos):
-    edit = ReadlineEdit(start_text)
-    edit.edit_pos = start_pos
+    edit = ReadlineEdit(edit_text=start_text, edit_pos=start_pos)
     edit.delete_char()
     assert edit.text == end_text
     assert edit.edit_pos == end_pos
@@ -128,24 +122,21 @@ def test_delete_char(start_text, start_pos, end_text, end_pos):
     ('abc', 0, 'abc', 0),
 ])
 def test_backward_delete_char(start_text, start_pos, end_text, end_pos):
-    edit = ReadlineEdit(start_text)
-    edit.edit_pos = start_pos
+    edit = ReadlineEdit(edit_text=start_text, edit_pos=start_pos)
     edit.backward_delete_char()
     assert edit.text == end_text
     assert edit.edit_pos == end_pos
 
 
 def test_kill_whole_line():
-    edit = ReadlineEdit('ab')
-    edit.edit_pos = 1
+    edit = ReadlineEdit(edit_text='ab', edit_pos=1)
     edit.kill_whole_line()
     assert edit.edit_pos == 0
     assert edit.text == ''
 
 
 def test_kill_line():
-    edit = ReadlineEdit('ab')
-    edit.edit_pos = 1
+    edit = ReadlineEdit(edit_text='ab', edit_pos=1)
     edit.kill_line()
     assert edit.edit_pos == 1
     assert edit.text == 'a'
@@ -176,8 +167,7 @@ def test_kill_line():
     ("xx'xx x", 3, 'xx x', 0),
 ])
 def test_backward_kill_word(start_text, start_pos, end_text, end_pos):
-    edit = ReadlineEdit(start_text)
-    edit.edit_pos = start_pos
+    edit = ReadlineEdit(edit_text=start_text, edit_pos=start_pos)
     edit.backward_kill_word()
     assert edit.text == end_text
     assert edit.edit_pos == end_pos
@@ -206,8 +196,7 @@ def test_backward_kill_word(start_text, start_pos, end_text, end_pos):
     ("xx'xx x", 3, "xx'x", 3),
 ])
 def test_kill_word(start_text, start_pos, end_text, end_pos):
-    edit = ReadlineEdit(start_text)
-    edit.edit_pos = start_pos
+    edit = ReadlineEdit(edit_text=start_text, edit_pos=start_pos)
     edit.kill_word()
     assert edit.text == end_text
     assert edit.edit_pos == end_pos
@@ -222,8 +211,7 @@ def test_kill_word(start_text, start_pos, end_text, end_pos):
     ('abc', 3, 'acb', 3),
 ])
 def test_transpose(start_text, start_pos, end_text, end_pos):
-    edit = ReadlineEdit(start_text)
-    edit.edit_pos = start_pos
+    edit = ReadlineEdit(edit_text=start_text, edit_pos=start_pos)
     edit.transpose_chars()
     assert edit.text == end_text
     assert edit.edit_pos == end_pos

@@ -4,10 +4,6 @@ import unicodedata
 import urwid
 
 
-def _clamp(number, min_value, max_value):
-    return max(min_value, min(max_value, number))
-
-
 def _is_valid_key(ch):
     return urwid.util.is_wide_char(ch, 0) or (len(ch) == 1 and ord(ch) >= 32)
 
@@ -25,13 +21,6 @@ class ReadlineEdit(urwid.Edit):
             '([%s]+)' % '|'.join(re.escape(ch) for ch in word_chars))
         self._word_regex2 = re.compile(
             '([^%s]+)' % '|'.join(re.escape(ch) for ch in word_chars))
-
-    def set_edit_pos(self, pos):
-        super().set_edit_pos(_clamp(pos, 0, len(self._edit_text)))
-
-    def set_edit_text(self, edit_text):
-        super().set_edit_text(edit_text)
-        self.set_edit_pos(_clamp(self._edit_pos, 0, len(edit_text)))
 
     def keypress(self, _size, key):
         keymap = {
