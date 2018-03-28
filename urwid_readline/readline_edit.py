@@ -1,11 +1,12 @@
 import re
 import string
-import unicodedata
 import urwid
 
 
-def _is_valid_key(ch):
-    return urwid.util.is_wide_char(ch, 0) or (len(ch) == 1 and ord(ch) >= 32)
+def _is_valid_key(char):
+    return (
+        urwid.util.is_wide_char(char, 0)
+        or (len(char) == 1 and ord(char) >= 32))
 
 
 class AutocompleteState:

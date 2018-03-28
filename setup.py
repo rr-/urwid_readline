@@ -27,4 +27,3 @@ setup(
         'Topic :: Software Development :: Widget Sets',
         'Topic :: Software Development :: Libraries :: Python Modules',
     ])
-

@@ -2,7 +2,7 @@ import urwid
 import urwid_readline
 
 
-def show_or_exit(key):
+def unhandled_input(txt, key):
     if key in ('ctrl q', 'ctrl Q'):
         raise urwid.ExitMainLoop()
     txt.set_edit_text('unknown key: ' + repr(key))
@@ -18,8 +18,14 @@ def compl(text, state):
         return None
 
 
-txt = urwid_readline.ReadlineEdit()
-txt.enable_autocomplete(compl)
-fill = urwid.Filler(txt, 'top')
-loop = urwid.MainLoop(fill, unhandled_input=show_or_exit)
-loop.run()
+def main():
+    txt = urwid_readline.ReadlineEdit()
+    txt.enable_autocomplete(compl)
+    fill = urwid.Filler(txt, 'top')
+    loop = urwid.MainLoop(
+        fill, unhandled_input=lambda key: unhandled_input(txt, key))
+    loop.run()
+
+
+if __name__ == '__main__':
+    main()
