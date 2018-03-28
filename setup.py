@@ -6,7 +6,7 @@ setup(
     name='urwid_readline',
     description=(
         'A textbox edit widget for urwid that supports readline shortcuts'),
-    version='0.4',
+    version='0.5',
     url='https://github.com/rr-/urwid_readline',
     packages=find_packages(),
 
