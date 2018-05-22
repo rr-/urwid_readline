@@ -9,7 +9,7 @@ readline shortcuts.
 `pip install urwid-readline`
 
 Example how to use the program can be found in the
-[examples](https://github.com/rr-/urwid_readline/blob/master/examples/)
+[examples](https://github.com/rr-/urwid_readline/blob/master/example/)
 directory.
 
 ### Features
