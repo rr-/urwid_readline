@@ -52,7 +52,7 @@ class ReadlineEdit(urwid.Edit):
             'ctrl b':         self.backward_char,
             'up':             self.previous_line,
             'ctrl p':         self.previous_line,
-            'meta n':         self.next_line,
+            'ctrl n':         self.next_line,
             'down':           self.next_line,
             'right':          self.forward_char,
             'left':           self.backward_char,
