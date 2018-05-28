@@ -1,65 +1,72 @@
 import pytest
 from urwid_readline import ReadlineEdit
 
-TEXT = "yadda yadda yadda yadda\n\
-yadda yadda yadda yadda\n\
-yadda yadda yadda yadda"
 
-
-def test_edit_pos_clamp():
+@pytest.mark.parametrize('set_pos, end_pos', [
+    (100, 3),
+    (-1, 0),
+])
+def test_edit_pos_clamp(set_pos, end_pos):
     edit = ReadlineEdit(edit_text='asd', edit_pos=0)
     assert edit.edit_pos == 0
-    edit.edit_pos = 100
-    assert edit.edit_pos == 3
-    edit.edit_pos = -1
-    assert edit.edit_pos == 0
+    edit.edit_pos = set_pos
+    assert edit.edit_pos == end_pos
 
 
-def test_backward_char():
-    edit = ReadlineEdit(edit_text='ab', edit_pos=2)
+@pytest.mark.parametrize('start_text, start_pos, end_pos', [
+    ('ab', 2, 1),
+    ('ab', 1, 0),
+    ('ab', 0, 0),
+])
+def test_backward_char(start_text, start_pos, end_pos):
+    edit = ReadlineEdit(edit_text=start_text, edit_pos=start_pos)
     edit.backward_char()
-    assert edit.edit_pos == 1
-    edit.backward_char()
-    assert edit.edit_pos == 0
-    edit.backward_char()
-    assert edit.edit_pos == 0
+    assert edit.edit_pos == end_pos
 
 
-def test_forward_char():
-    edit = ReadlineEdit(edit_text='ab', edit_pos=0)
+@pytest.mark.parametrize('start_text, start_pos, end_pos', [
+    ('ab', 0, 1),
+    ('ab', 1, 2),
+    ('ab', 2, 2),
+])
+def test_forward_char(start_text, start_pos, end_pos):
+    edit = ReadlineEdit(edit_text=start_text, edit_pos=start_pos)
     edit.forward_char()
-    assert edit.edit_pos == 1
-    edit.forward_char()
-    assert edit.edit_pos == 2
-    edit.forward_char()
-    assert edit.edit_pos == 2
+    assert edit.edit_pos == end_pos
 
 
-def test_beginnining_of_line():
-    edit = ReadlineEdit(edit_text='ab', edit_pos=2)
+@pytest.mark.parametrize('start_text, start_pos, end_pos', [
+    ('ab', 2, 0),
+    ('ab', 1, 0),
+    ('line 1\nline 2', 13, 7),
+    ('line 1\nline 2', 8, 7),
+    ('line 1\nline 2', 7, 0),
+    ('line 1\nline 2', 6, 0),
+    ('line 1\nline 2', 1, 0),
+    ('line 1\nline 2', 0, 0),
+])
+def test_beginnining_of_line(start_text, start_pos, end_pos):
+    edit = ReadlineEdit(edit_text=start_text, edit_pos=start_pos)
     edit.beginning_of_line()
-    assert edit.edit_pos == 0
-    edit = ReadlineEdit(edit_text=TEXT, edit_pos=len(TEXT))
-    assert edit.edit_pos == len(TEXT)
-    edit.beginning_of_line()
-    assert edit.edit_pos == 48
-    edit.beginning_of_line()
-    assert edit.edit_pos == 24
-    edit.beginning_of_line()
-    assert edit.edit_pos == 0
+    assert edit.edit_pos == end_pos
 
 
-def test_end_of_line():
-    edit = ReadlineEdit(edit_text='ab', edit_pos=0)
+@pytest.mark.parametrize('start_text, start_pos, end_pos', [
+    ('ab', 0, 2),
+    ('ab', 1, 2),
+    ('ab', 2, 2),
+    ('line 1\nline 2', 0, 6),
+    ('line 1\nline 2', 1, 6),
+    ('line 1\nline 2', 5, 6),
+    ('line 1\nline 2', 6, 13),
+    ('line 1\nline 2', 7, 13),
+    ('line 1\nline 2', 8, 13),
+    ('line 1\nline 2', 13, 13),
+])
+def test_end_of_line(start_text, start_pos, end_pos):
+    edit = ReadlineEdit(edit_text=start_text, edit_pos=start_pos)
     edit.end_of_line()
-    assert edit.edit_pos == 2
-    edit = ReadlineEdit(edit_text=TEXT, edit_pos=0)
-    edit.end_of_line()
-    assert edit.edit_pos == 23
-    edit.end_of_line()
-    assert edit.edit_pos == 47
-    edit.end_of_line()
-    assert edit.edit_pos == len(TEXT)
+    assert edit.edit_pos == end_pos
 
 
 @pytest.mark.parametrize('start_text, start_pos, end_pos', [
@@ -147,70 +154,103 @@ def test_backward_delete_char(start_text, start_pos, end_text, end_pos):
     assert edit.edit_pos == end_pos
 
 
-def test_previous_line():
-    edit = ReadlineEdit(edit_text=TEXT, edit_pos=len(TEXT))
-    assert edit.edit_pos == len(TEXT)
+@pytest.mark.parametrize('start_text, start_pos, end_pos', [
+    ('ab', 0, 0),
+    ('ab', 1, 1),
+    ('ab', 2, 2),
+    ('line 1\nline 2', 13, 6),
+    ('line 1\nline 2', 8, 1),
+    ('line 1\nline 2', 7, 0),
+    ('line 1\nline 2', 6, 6),
+    ('line 1\nline 2', 1, 1),
+    ('line 1\nline 2', 0, 0),
+])
+def test_previous_line(start_text, start_pos, end_pos):
+    edit = ReadlineEdit(edit_text=start_text, edit_pos=start_pos)
     edit.previous_line()
-    assert edit.edit_pos == 47
-    edit.previous_line()
-    assert edit.edit_pos == 23
+    assert edit.edit_pos == end_pos
 
 
-def test_next_line():
-    edit = ReadlineEdit(edit_text=TEXT, edit_pos=0)
+@pytest.mark.parametrize('start_text, start_pos, end_pos', [
+    ('ab', 0, 0),
+    ('ab', 1, 1),
+    ('ab', 2, 2),
+    ('line 1\nline 2', 0, 7),
+    ('line 1\nline 2', 1, 8),
+    ('line 1\nline 2', 6, 13),
+    ('line 1\nline 2', 7, 7),
+    ('line 1\nline 2', 8, 8),
+    ('line 1\nline 2', 13, 13),
+])
+def test_next_line(start_text, start_pos, end_pos):
+    edit = ReadlineEdit(edit_text=start_text, edit_pos=start_pos)
     edit.next_line()
-    assert edit.edit_pos == 24
-    edit.next_line()
-    assert edit.edit_pos == 48
+    assert edit.edit_pos == end_pos
 
 
 def test_clear_screen():
-    edit = ReadlineEdit(edit_text=TEXT, edit_pos=22)
+    edit = ReadlineEdit(edit_text='line 1\nline 2', edit_pos=4)
     edit.clear_screen()
     assert edit.edit_pos == 0
     assert edit.edit_text == ""
 
 
-def test_backward_kill_line():
-    edit = ReadlineEdit(edit_text='ab', edit_pos=1)
+@pytest.mark.parametrize('start_text, start_pos, end_text, end_pos', [
+    ('', 0, '', 0),
+    ('ab', 1, 'b', 0),
+    ('line 1\nline 2', 0, 'line 1\nline 2', 0),
+    ('line 1\nline 2', 1, 'ine 1\nline 2', 0),
+    ('line 1\nline 2', 6, '\nline 2', 0),
+    ('line 1\nline 2', 7, 'line 1\nline 2', 7),
+    ('line 1\nline 2', 8, 'line 1\nine 2', 7),
+    ('line 1\nline 2', 13, 'line 1\n', 7),
+    ('line 1\nline 2\nline 3', 7, 'line 1\nline 2\nline 3', 7),
+    ('line 1\nline 2\nline 3', 8, 'line 1\nine 2\nline 3', 7),
+    ('line 1\nline 2\nline 3', 13, 'line 1\n\nline 3', 7),
+])
+def test_backward_kill_line(start_text, start_pos, end_text, end_pos):
+    edit = ReadlineEdit(edit_text=start_text, edit_pos=start_pos)
     edit.backward_kill_line()
-    assert edit.edit_pos == 0
-    assert edit.text == 'b'
-    edit = ReadlineEdit(edit_text=TEXT, edit_pos=22)
-    edit.backward_kill_line()
-    assert edit.edit_pos == 0
-    new_text = "a\n\
-yadda yadda yadda yadda\n\
-yadda yadda yadda yadda"
-    assert edit.text == new_text
+    assert edit.text == end_text
+    assert edit.edit_pos == end_pos
 
 
-def test_forward_kill_line():
-    edit = ReadlineEdit(edit_text='ab', edit_pos=1)
+@pytest.mark.parametrize('start_text, start_pos, end_text, end_pos', [
+    ('', 0, '', 0),
+    ('ab', 1, 'a', 1),
+    ('line 1\nline 2', 0, '\nline 2', 0),
+    ('line 1\nline 2', 1, 'l\nline 2', 1),
+    ('line 1\nline 2', 6, 'line 1\nline 2', 6),
+    ('line 1\nline 2', 7, 'line 1\n', 7),
+    ('line 1\nline 2', 8, 'line 1\nl', 8),
+    ('line 1\nline 2', 13, 'line 1\nline 2', 13),
+    ('line 1\nline 2\nline 3', 7, 'line 1\n\nline 3', 7),
+    ('line 1\nline 2\nline 3', 8, 'line 1\nl\nline 3', 8),
+    ('line 1\nline 2\nline 3', 13, 'line 1\nline 2\nline 3', 13),
+])
+def test_forward_kill_line(start_text, start_pos, end_text, end_pos):
+    edit = ReadlineEdit(edit_text=start_text, edit_pos=start_pos)
     edit.forward_kill_line()
-    assert edit.edit_pos == 1
-    assert edit.text == 'a'
-    edit = ReadlineEdit(edit_text=TEXT, edit_pos=1)
-    edit.forward_kill_line()
-    assert edit.edit_pos == 1
-    new_text = "y\n\
-yadda yadda yadda yadda\n\
-yadda yadda yadda yadda"
-    assert edit.text == new_text
+    assert edit.text == end_text
+    assert edit.edit_pos == end_pos
 
 
-def test_kill_whole_line():
-    edit = ReadlineEdit(edit_text='ab', edit_pos=1)
+@pytest.mark.parametrize('start_text, start_pos, end_text, end_pos', [
+    ('', 0, '', 0),
+    ('ab', 1, '', 0),
+    ('line 1\nline 2', 0, '\nline 2', 0),
+    ('line 1\nline 2', 6, '\nline 2', 0),
+    ('line 1\nline 2', 7, 'line 1\n', 7),
+    ('line 1\nline 2', 13, 'line 1\n', 7),
+    ('line 1\nline 2\nline 3', 7, 'line 1\n\nline 3', 7),
+    ('line 1\nline 2\nline 3', 8, 'line 1\n\nline 3', 7),
+    ('line 1\nline 2\nline 3', 13, 'line 1\n\nline 3', 7),
+])
+def test_kill_whole_line(start_text, start_pos, end_text, end_pos):
+    edit = ReadlineEdit(edit_text=start_text, edit_pos=start_pos)
     edit.kill_whole_line()
-    assert edit.edit_pos == 0
-    assert edit.text == ''
-    edit = ReadlineEdit(edit_text=TEXT, edit_pos=26)
-    edit.kill_whole_line()
-    assert edit.edit_pos == 24
-    new_text = "yadda yadda yadda yadda\n\
-\n\
-yadda yadda yadda yadda"
-    assert edit.text == new_text
+    assert edit.text == end_text
+    assert edit.edit_pos == end_pos
 
 
 @pytest.mark.parametrize('start_text, start_pos, end_text, end_pos', [
@@ -280,6 +320,12 @@ def test_kill_word(start_text, start_pos, end_text, end_pos):
     ('abc', 1, 'bac', 2),
     ('abc', 2, 'acb', 3),
     ('abc', 3, 'acb', 3),
+    ('line 1\nline 2', 6, 'line1 \nline 2', 6),
+    ('line 1\nline 2', 7, 'line 1\nilne 2', 9),
+    ('line 1\nline 2', 8, 'line 1\nilne 2', 9),
+    ('line 1\nline 2', 9, 'line 1\nlnie 2', 10),
+    ('line 1\nline 2', 10, 'line 1\nlien 2', 11),
+    ('line 1\nline 2', 13, 'line 1\nline2 ', 13),
 ])
 def test_transpose(start_text, start_pos, end_text, end_pos):
     edit = ReadlineEdit(edit_text=start_text, edit_pos=start_pos)
