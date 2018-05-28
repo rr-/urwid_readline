@@ -29,7 +29,7 @@ Supported operations (names consistent with bash):
 | Delete previous character                             | <kbd>Ctrl</kbd> + <kbd>H</kbd>                |
 | Transpose characters                                  | <kbd>Ctrl</kbd> + <kbd>T</kbd>                |
 | Kill (cut) forwards to the end of the line            | <kbd>Ctrl</kbd> + <kbd>K</kbd>                |
-| Kill (cut) backwards to the start of the line.        | <kbd>Ctrl</kbd> + <kbd>U</kbd>                |
+| Kill (cut) backwards to the start of the line         | <kbd>Ctrl</kbd> + <kbd>U</kbd>                |
 | Kill (cut) forwards to the end of the current word    | <kbd>Meta</kbd> + <kbd>D</kbd>                |
 | Kill (cut) backwards to the start of the current word | <kbd>Ctrl</kbd> + <kbd>W</kbd>                |
 | Previous line                                         | <kbd>Ctrl</kbd> + <kbd>P</kbd> / <kbd>↑</kbd> |
