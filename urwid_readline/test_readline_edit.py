@@ -360,7 +360,8 @@ def test_enable_autocomplete(start_text, start_pos, source, positions):
         tmp = (
             [c for c in source if c and c.startswith(text)]
             if text
-            else source)
+            else source
+        )
         try:
             return tmp[state]
         except IndexError:
@@ -382,7 +383,8 @@ def test_enable_autocomplete_clear_state():
         tmp = (
             [c for c in source if c and c.startswith(text)]
             if text
-            else source)
+            else source
+        )
         try:
             return tmp[state]
         except IndexError:
