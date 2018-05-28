@@ -21,7 +21,6 @@ Supported operations (names consistent with bash):
 | Beginning of line                                     | <kbd>Ctrl</kbd> + <kbd>A</kbd>                |
 | Backward one character                                | <kbd>Ctrl</kbd> + <kbd>B</kbd> / <kbd>←</kbd> |
 | Backward one word                                     | <kbd>Meta</kbd> + <kbd>B</kbd>                |
-| Send io.EOF                                           | <kbd>Ctrl</kbd> + <kbd>C</kbd>                |
 | Delete one character                                  | <kbd>Ctrl</kbd> + <kbd>D</kbd>                |
 | Delete one word                                       | <kbd>Meta</kbd> + <kbd>D</kbd>                |
 | End of line                                           | <kbd>Ctrl</kbd> + <kbd>E</kbd>                |
