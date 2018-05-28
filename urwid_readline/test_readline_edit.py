@@ -199,6 +199,20 @@ yadda yadda yadda yadda"
     assert edit.text == new_text
 
 
+def test_kill_whole_line():
+    edit = ReadlineEdit(edit_text='ab', edit_pos=1)
+    edit.kill_whole_line()
+    assert edit.edit_pos == 0
+    assert edit.text == ''
+    edit = ReadlineEdit(edit_text=TEXT, edit_pos=26)
+    edit.kill_whole_line()
+    assert edit.edit_pos == 24
+    new_text = "yadda yadda yadda yadda\n\
+\n\
+yadda yadda yadda yadda"
+    assert edit.text == new_text
+
+
 @pytest.mark.parametrize('start_text, start_pos, end_text, end_pos', [
     ("'x'", 3, "'", 1),
     ("'x'", 2, "''", 1),

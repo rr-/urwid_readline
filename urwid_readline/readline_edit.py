@@ -169,6 +169,10 @@ class ReadlineEdit(urwid.Edit):
             + self._edit_text[pos:]
         )
 
+    def kill_whole_line(self):
+        self.backward_kill_line()
+        self.forward_kill_line()
+
     def backward_kill_word(self):
         pos = self._edit_pos
         self.backward_word()
