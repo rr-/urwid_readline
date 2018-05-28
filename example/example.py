@@ -19,7 +19,7 @@ def compl(text, state):
 
 
 def main():
-    txt = urwid_readline.ReadlineEdit()
+    txt = urwid_readline.ReadlineEdit(multiline=True)
     txt.enable_autocomplete(compl)
     fill = urwid.Filler(txt, 'top')
     loop = urwid.MainLoop(
