@@ -148,26 +148,26 @@ class ReadlineEdit(urwid.Edit):
             )
 
     def backward_kill_line(self):
-        curr_pos = self.edit_pos
-        x, y = self.get_cursor_coords(self.size)
-        self.move_cursor_to_coords(self.size, 0, y)
-        new_pos = self.edit_pos
-        self.set_edit_text(
-            self._edit_text[:new_pos]
-            + self._edit_text[curr_pos:]
-        )
+        for pos in reversed(range(0, self.edit_pos)):
+            if self.edit_text[pos] == '\n':
+                self.set_edit_text(
+                    self._edit_text[:pos + 1]
+                    + self._edit_text[self.edit_pos:]
+                )
+                self.edit_pos = pos + 1
+                return
+        self.set_edit_text(self._edit_text[self.edit_pos:])
+        self.edit_pos = 0
 
     def forward_kill_line(self):
-        text_length = len(self.edit_text)
-        for pos in range(self.edit_pos, text_length + 1):
-            if pos == text_length:
-                break
-            elif self.edit_text[pos] == '\n':
-                break
-        self.set_edit_text(
-            self._edit_text[:self.edit_pos]
-            + self._edit_text[pos:]
-        )
+        for pos in range(self.edit_pos, len(self.edit_text)):
+            if self.edit_text[pos] == '\n':
+                self.set_edit_text(
+                    self._edit_text[:self.edit_pos]
+                    + self._edit_text[pos:]
+                )
+                return
+        self.set_edit_text(self._edit_text[:self.edit_pos])
 
     def kill_whole_line(self):
         self.backward_kill_line()
