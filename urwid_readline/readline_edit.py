@@ -38,6 +38,7 @@ class ReadlineEdit(urwid.Edit):
         self._autocomplete_func = None
         self._autocomplete_delims = ' \t\n;'
         self.size = (30,)  # SET MAXCOL DEFAULT VALUE
+        self.buffer = []
 
     def keypress(self, _size, key):
         self.size = _size
@@ -71,12 +72,14 @@ class ReadlineEdit(urwid.Edit):
             'backspace':      self.backward_delete_char,
             'ctrl u':         self.backward_kill_line,
             'ctrl k':         self.forward_kill_line,
+            'meta x':         self.kill_whole_line,
             'meta d':         self.kill_word,
             'ctrl w':         self.backward_kill_word,
             'meta backspace': self.backward_kill_word,
             'ctrl t':         self.transpose_chars,
             'enter':          self.insert_new_line,
             'ctrl l':         self.clear_screen,
+            'ctrl y':         self.paste,
         }
         if key in keymap:
             keymap[key]()
@@ -99,6 +102,23 @@ class ReadlineEdit(urwid.Edit):
     def clear_screen(self):
         self.set_edit_pos(0)
         self.set_edit_text('')
+
+    def append_buffer(self,  text):
+        if len(text) == 0:
+            return
+        self.buffer.append(text)
+
+    def paste(self):
+        # do not paste if empty buffer
+        if len(self.buffer) == 0:
+            return
+        text = self.buffer[-1]
+        self.set_edit_text(
+            self.edit_text[:self.edit_pos]
+            + text
+            + self.edit_text[self.edit_pos:]
+        )
+        self.set_edit_pos(self.edit_pos + len(text))
 
     def previous_line(self):
         x, y = self.get_cursor_coords(self.size)
@@ -150,40 +170,54 @@ class ReadlineEdit(urwid.Edit):
     def backward_kill_line(self):
         for pos in reversed(range(0, self.edit_pos)):
             if self.edit_text[pos] == '\n':
+                self.append_buffer(
+                    self.edit_text[pos+1:self.edit_pos]
+                )
                 self.set_edit_text(
                     self._edit_text[:pos + 1]
                     + self._edit_text[self.edit_pos:]
                 )
                 self.edit_pos = pos + 1
                 return
+        self.append_buffer(self.edit_text[:self.edit_pos])
         self.set_edit_text(self._edit_text[self.edit_pos:])
         self.edit_pos = 0
 
     def forward_kill_line(self):
         for pos in range(self.edit_pos, len(self.edit_text)):
             if self.edit_text[pos] == '\n':
+                self.append_buffer(
+                    self.edit_text[self.edit_pos:pos]
+                )
                 self.set_edit_text(
                     self._edit_text[:self.edit_pos]
                     + self._edit_text[pos:]
                 )
                 return
+        self.append_buffer(self.edit_text[self.edit_pos:])
         self.set_edit_text(self._edit_text[:self.edit_pos])
 
     def kill_whole_line(self):
+        buffer_length = len(self.buffer)
         self.backward_kill_line()
         self.forward_kill_line()
+        if len(self.buffer) - buffer_length == 2:
+            # If text was added from both forward and backword kill
+            self.buffer[:2] = [''.join(self.buffer[:2])]
 
     def backward_kill_word(self):
         pos = self._edit_pos
         self.backward_word()
+        self.append_buffer(self._edit_text[self.edit_pos:pos])
         self.set_edit_text(
-            self._edit_text[0:self._edit_pos]
+            self._edit_text[:self._edit_pos]
             + self._edit_text[pos:]
         )
 
     def kill_word(self):
         pos = self._edit_pos
         self.forward_word()
+        self.append_buffer(self.edit_text[pos:self.edit_pos])
         self.set_edit_text(
             self._edit_text[0:pos]
             + self._edit_text[self._edit_pos:]
