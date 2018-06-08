@@ -39,6 +39,8 @@ class ReadlineEdit(urwid.Edit):
         self._autocomplete_delims = ' \t\n;'
         self.size = (30,)  # SET MAXCOL DEFAULT VALUE
         self.buffer = []
+        self.undo_buffer = []  # list(edit_pos, edit_text)
+        self.state = 0  # used for tracking undo/redo position
 
     def keypress(self, _size, key):
         self.size = _size
@@ -80,18 +82,21 @@ class ReadlineEdit(urwid.Edit):
             'enter':          self.insert_new_line,
             'ctrl l':         self.clear_screen,
             'ctrl y':         self.paste,
+            'ctrl _':         self.undo,
         }
         if key in keymap:
+            self.save_state(key)
             keymap[key]()
             self._invalidate()
             return None
         elif _is_valid_key(key):
-            self._insert_char_at_cusor(key)
+            self.save_state(key)
+            self._insert_char_at_cursor(key)
             self._invalidate()
             return None
         return key
 
-    def _insert_char_at_cusor(self, key):
+    def _insert_char_at_cursor(self, key):
         self.set_edit_text(
             self._edit_text[0:self._edit_pos]
             + key
@@ -102,6 +107,23 @@ class ReadlineEdit(urwid.Edit):
     def clear_screen(self):
         self.set_edit_pos(0)
         self.set_edit_text('')
+
+    def save_state(self, key):
+        if key != 'ctrl _' and (self.state == 0 or
+           self.undo_buffer[self.state - 1][1] != self.edit_text):
+            # if edit_text changed and action != undo
+
+            self.undo_buffer = self.undo_buffer[:self.state]
+            self.undo_buffer.append((self.edit_pos, self.edit_text))
+            self.state = len(self.undo_buffer)
+
+    def undo(self):
+        if self.state == 0:
+            return
+        pos, text = self.undo_buffer[self.state - 1]
+        self.state -= 1
+        self.set_edit_text(text)
+        self.set_edit_pos(pos)
 
     def append_buffer(self,  text):
         if len(text) == 0:
