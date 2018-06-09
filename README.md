@@ -32,13 +32,15 @@ Supported operations (names consistent with bash):
 | Kill (cut) backwards to the start of the line         | <kbd>Ctrl</kbd> + <kbd>U</kbd>                |
 | Kill (cut) forwards to the end of the current word    | <kbd>Meta</kbd> + <kbd>D</kbd>                |
 | Kill (cut) backwards to the start of the current word | <kbd>Ctrl</kbd> + <kbd>W</kbd>                |
+| Paste last kill                                       | <kbd>Ctrl</kbd> + <kbd>Y</kbd>                |
+| Undo last action                                      | <kbd>Ctrl</kbd> + <kbd>_</kbd>               |
 | Previous line                                         | <kbd>Ctrl</kbd> + <kbd>P</kbd> / <kbd>↑</kbd> |
 | Next line                                             | <kbd>Ctrl</kbd> + <kbd>N</kbd> / <kbd>↓</kbd> |
 | Clear screen                                          | <kbd>Ctrl</kbd> + <kbd>L</kbd>                |
 | Autocomplete                                          | See examples                                  |
 
-Notable unsupported operations (let me know if you need these):
-
-- word transposing
-- clipboard
-- history, undo
+Upcoming Features:
+* Redo
+* Loop through Paste buffer
+* Copy / Paste from system clipboard
+* Show possible autocomplete options
