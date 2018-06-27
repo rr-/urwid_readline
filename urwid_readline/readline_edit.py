@@ -37,7 +37,7 @@ class ReadlineEdit(urwid.Edit):
         self._autocomplete_state = None
         self._autocomplete_func = None
         self._autocomplete_delims = ' \t\n;'
-        self._buffer = []
+        self._paste_buffer = []  # list(edit_text)
         self._undo_buffer = []  # list(edit_pos, edit_text)
         self._undo_pos = 0
         self.size = (30,)  # SET MAXCOL DEFAULT VALUE
@@ -127,17 +127,17 @@ class ReadlineEdit(urwid.Edit):
         self.set_edit_text(text)
         self.set_edit_pos(pos)
 
-    def append_buffer(self, text):
+    def _append_paste_buffer(self, text):
         if not len(text):
             return
-        self._buffer.append(text)
+        self._paste_buffer.append(text)
 
     def paste(self):
         # do not paste if empty buffer
-        if not len(self._buffer):
+        if not len(self._paste_buffer):
             return
 
-        text = self._buffer[-1]
+        text = self._paste_buffer[-1]
         self.set_edit_text(
             self.edit_text[:self.edit_pos]
             + text
@@ -195,41 +195,41 @@ class ReadlineEdit(urwid.Edit):
     def backward_kill_line(self):
         for pos in reversed(range(0, self.edit_pos)):
             if self.edit_text[pos] == '\n':
-                self.append_buffer(self.edit_text[pos+1:self.edit_pos])
+                self._append_paste_buffer(self.edit_text[pos+1:self.edit_pos])
                 self.set_edit_text(
                     self._edit_text[:pos + 1]
                     + self._edit_text[self.edit_pos:]
                 )
                 self.edit_pos = pos + 1
                 return
-        self.append_buffer(self.edit_text[:self.edit_pos])
+        self._append_paste_buffer(self.edit_text[:self.edit_pos])
         self.set_edit_text(self._edit_text[self.edit_pos:])
         self.edit_pos = 0
 
     def forward_kill_line(self):
         for pos in range(self.edit_pos, len(self.edit_text)):
             if self.edit_text[pos] == '\n':
-                self.append_buffer(self.edit_text[self.edit_pos:pos])
+                self._append_paste_buffer(self.edit_text[self.edit_pos:pos])
                 self.set_edit_text(
                     self._edit_text[:self.edit_pos]
                     + self._edit_text[pos:]
                 )
                 return
-        self.append_buffer(self.edit_text[self.edit_pos:])
+        self._append_paste_buffer(self.edit_text[self.edit_pos:])
         self.set_edit_text(self._edit_text[:self.edit_pos])
 
     def kill_whole_line(self):
-        buffer_length = len(self._buffer)
+        buffer_length = len(self._paste_buffer)
         self.backward_kill_line()
         self.forward_kill_line()
-        if len(self._buffer) - buffer_length == 2:
+        if len(self._paste_buffer) - buffer_length == 2:
             # If text was added from both forward and backword kill
-            self._buffer[:2] = [''.join(self._buffer[:2])]
+            self._paste_buffer[:2] = [''.join(self._paste_buffer[:2])]
 
     def backward_kill_word(self):
         pos = self._edit_pos
         self.backward_word()
-        self.append_buffer(self._edit_text[self.edit_pos:pos])
+        self._append_paste_buffer(self._edit_text[self.edit_pos:pos])
         self.set_edit_text(
             self._edit_text[:self._edit_pos]
             + self._edit_text[pos:]
@@ -238,7 +238,7 @@ class ReadlineEdit(urwid.Edit):
     def kill_word(self):
         pos = self._edit_pos
         self.forward_word()
-        self.append_buffer(self.edit_text[pos:self.edit_pos])
+        self._append_paste_buffer(self.edit_text[pos:self.edit_pos])
         self.set_edit_text(
             self._edit_text[0:pos]
             + self._edit_text[self._edit_pos:]
