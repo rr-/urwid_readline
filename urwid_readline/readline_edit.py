@@ -1,3 +1,4 @@
+import contextlib
 import re
 import string
 import urwid
@@ -44,9 +45,10 @@ class UndoBuffer:
     def cur(self):
         return self.buffer[self.pos - 1]
 
-    def push(self, state):
+    def push(self, old_state, new_state):
         self.buffer = self.buffer[:self.pos]
-        self.buffer.append(state)
+        if old_state.edit_text != new_state.edit_text:
+            self.buffer.append((old_state, new_state))
         self.pos = len(self.buffer)
 
     def pop(self):
@@ -120,14 +122,16 @@ class ReadlineEdit(urwid.Edit):
             'ctrl _':         self.undo,
         }
         if key in keymap:
-            if keymap[key] != self.undo:
-                self._save_state()
-            keymap[key]()
+            if keymap[key] == self.undo:
+                keymap[key]()
+            else:
+                with self._capture_undo():
+                    keymap[key]()
             self._invalidate()
             return None
         elif _is_valid_key(key):
-            self._save_state()
-            self._insert_char_at_cursor(key)
+            with self._capture_undo():
+                self._insert_char_at_cursor(key)
             self._invalidate()
             return None
         return key
@@ -144,20 +148,26 @@ class ReadlineEdit(urwid.Edit):
         self.set_edit_pos(0)
         self.set_edit_text('')
 
-    def _save_state(self):
-        if (
-                self._undo_buffer.empty or
-                self._undo_buffer.cur.edit_text != self.edit_text
-        ):
-            self._undo_buffer.push(UndoState(self.edit_pos, self.edit_text))
+    def _make_undo_state(self):
+        return UndoState(self.edit_pos, self.edit_text)
+
+    def _apply_undo_state(self, state):
+        self.set_edit_text(state.edit_text)
+        self.set_edit_pos(state.edit_pos)
+
+    @contextlib.contextmanager
+    def _capture_undo(self):
+        old_state = self._make_undo_state()
+        yield
+        new_state = self._make_undo_state()
+        self._undo_buffer.push(old_state, new_state)
 
     def undo(self):
         if self._undo_buffer.empty:
             return
-        state = self._undo_buffer.cur
+        old_state, new_state = self._undo_buffer.cur
         self._undo_buffer.pop()
-        self.set_edit_text(state.edit_text)
-        self.set_edit_pos(state.edit_pos)
+        self._apply_undo_state(old_state)
 
     def paste(self):
         # do not paste if empty buffer
