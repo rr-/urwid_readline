@@ -464,82 +464,27 @@ def test_enable_autocomplete_clear_state():
 
 
 @pytest.mark.parametrize(
-    'key, undo_pos, undo_buffer, expected_state, expected_buffer, text',
+    'keys, expected_edit_pos, expected_text',
     [
-        (
-            'F',
-            0, [],
-            1, [(0, '')],
-            ''
-        ),
-
-        (
-            'O',
-            1, [(0, '')],
-            2, [(0, ''), (1, 'F')],
-            'F'
-        ),
-
-        (
-            'O',
-            2, [(0, ''), (1, 'F')],
-            3, [(0, ''), (1, 'F'), (2, 'FO')],
-            'FO'
-        ),
-
-        (
-            'ctrl w',
-            3, [(0, ''), (1, 'F'), (2, 'FO')],
-            4, [(0, ''), (1, 'F'), (2, 'FO'), (3, 'FOO')],
-            'FOO'
-        ),
-
-        (
-            'ctrl _',
-            4, [(0, ''), (1, 'F'), (2, 'FO'), (3, 'FOO')],
-            4, [(0, ''), (1, 'F'), (2, 'FO'), (3, 'FOO')],
-            ''
-        ),
-    ]
-)
-def test_save_state(
-        key, undo_pos, undo_buffer, expected_state, expected_buffer, text
-):
-    edit = ReadlineEdit(edit_text=text)
-    edit._undo_pos = undo_pos
-    edit._undo_buffer = undo_buffer
-    edit._save_state(key)
-    assert edit._undo_pos == expected_state
-    assert edit._undo_buffer == expected_buffer
-
-
-@pytest.mark.parametrize(
-    'undo_pos, undo_buffer, expected_state, expected_pos, expected_text',
-    [
-        (0, [], 0, 0, ''),
-        (1, [(1, 'F')], 0, 1, 'F')
+        ([], 0, ''),
+        (['F'], 0, ''),
+        (['F', 'O'], 1, 'F'),
+        (['F', 'O', 'O'], 2, 'FO'),
+        (['F', 'O', 'O', 'ctrl w'], 3, 'FOO'),
+        (['F', 'O', 'O', 'ctrl w', 'ctrl _'], 2, 'FO'),
     ]
 )
 def test_undo(
-        undo_pos, undo_buffer, expected_state, expected_pos, expected_text
+        keys,
+        expected_edit_pos,
+        expected_text
 ):
     edit = ReadlineEdit()
-    edit._undo_pos = undo_pos
-    edit._undo_buffer = undo_buffer
+    for key in keys:
+        edit.keypress(edit.size, key)
     edit.undo()
-    assert edit._undo_pos == expected_state
-    assert edit.edit_pos == expected_pos
+    assert edit.edit_pos == expected_edit_pos
     assert edit.text == expected_text
-
-
-@pytest.mark.parametrize('text, expected_paste_buffer', [
-    ('F', ['F']),
-    ('FOO', ['FOO']),
-])
-def test_append_buffer(text, expected_paste_buffer):
-    edit = ReadlineEdit()
-    edit._append_paste_buffer(text)
-    assert edit._paste_buffer == expected_paste_buffer
 
 
 @pytest.mark.parametrize(
@@ -551,7 +496,7 @@ def test_append_buffer(text, expected_paste_buffer):
 )
 def test_paste(paste_buffer, text, pos, expected_pos, expected_text):
     edit = ReadlineEdit(edit_text=text, edit_pos=pos)
-    edit._paste_buffer = paste_buffer
+    edit._paste_buffer[:] = paste_buffer
     edit.paste()
     assert edit.edit_pos == expected_pos
     assert edit.edit_text == expected_text
