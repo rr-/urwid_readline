@@ -464,7 +464,7 @@ def test_enable_autocomplete_clear_state():
 
 
 @pytest.mark.parametrize(
-    'key, state, buffer, expected_state, expected_buffer, text',
+    'key, undo_pos, undo_buffer, expected_state, expected_buffer, text',
     [
         (
             'F',
@@ -502,28 +502,32 @@ def test_enable_autocomplete_clear_state():
         ),
     ]
 )
-def test_save_state(key, state, buffer, expected_state, expected_buffer, text):
+def test_save_state(
+        key, undo_pos, undo_buffer, expected_state, expected_buffer, text
+):
     edit = ReadlineEdit(edit_text=text)
-    edit.state = state
-    edit.undo_buffer = buffer
-    edit.save_state(key)
-    assert edit.state == expected_state
-    assert edit.undo_buffer == expected_buffer
+    edit._undo_pos = undo_pos
+    edit._undo_buffer = undo_buffer
+    edit._save_state(key)
+    assert edit._undo_pos == expected_state
+    assert edit._undo_buffer == expected_buffer
 
 
 @pytest.mark.parametrize(
-    'state, buffer, expected_state, expected_pos, expected_text',
+    'undo_pos, undo_buffer, expected_state, expected_pos, expected_text',
     [
         (0, [], 0, 0, ''),
         (1, [(1, 'F')], 0, 1, 'F')
     ]
 )
-def test_undo(state, buffer, expected_state, expected_pos, expected_text):
+def test_undo(
+        undo_pos, undo_buffer, expected_state, expected_pos, expected_text
+):
     edit = ReadlineEdit()
-    edit.state = state
-    edit.undo_buffer = buffer
+    edit._undo_pos = undo_pos
+    edit._undo_buffer = undo_buffer
     edit.undo()
-    assert edit.state == expected_state
+    assert edit._undo_pos == expected_state
     assert edit.edit_pos == expected_pos
     assert edit.text == expected_text
 
@@ -535,7 +539,7 @@ def test_undo(state, buffer, expected_state, expected_pos, expected_text):
 def test_append_buffer(text, expected_buffer):
     edit = ReadlineEdit()
     edit.append_buffer(text)
-    assert edit.buffer == expected_buffer
+    assert edit._buffer == expected_buffer
 
 
 @pytest.mark.parametrize('buffer, text, pos, expected_pos, expected_text', [
@@ -544,7 +548,7 @@ def test_append_buffer(text, expected_buffer):
 ])
 def test_paste(buffer, text, pos, expected_pos, expected_text):
     edit = ReadlineEdit(edit_text=text, edit_pos=pos)
-    edit.buffer = buffer
+    edit._buffer = buffer
     edit.paste()
     assert edit.edit_pos == expected_pos
     assert edit.edit_text == expected_text
