@@ -109,8 +109,10 @@ class ReadlineEdit(urwid.Edit):
         self.set_edit_text('')
 
     def save_state(self, key):
-        if key != 'ctrl _' and (self.state == 0 or
-           self.undo_buffer[self.state - 1][1] != self.edit_text):
+        if key != 'ctrl _' and (
+                self.state == 0 or
+                self.undo_buffer[self.state - 1][1] != self.edit_text
+        ):
             # if edit_text changed and action != undo
 
             self.undo_buffer = self.undo_buffer[:self.state]
@@ -125,15 +127,16 @@ class ReadlineEdit(urwid.Edit):
         self.set_edit_text(text)
         self.set_edit_pos(pos)
 
-    def append_buffer(self,  text):
-        if len(text) == 0:
+    def append_buffer(self, text):
+        if not len(text):
             return
         self.buffer.append(text)
 
     def paste(self):
         # do not paste if empty buffer
-        if len(self.buffer) == 0:
+        if not len(self.buffer):
             return
+
         text = self.buffer[-1]
         self.set_edit_text(
             self.edit_text[:self.edit_pos]
@@ -192,9 +195,7 @@ class ReadlineEdit(urwid.Edit):
     def backward_kill_line(self):
         for pos in reversed(range(0, self.edit_pos)):
             if self.edit_text[pos] == '\n':
-                self.append_buffer(
-                    self.edit_text[pos+1:self.edit_pos]
-                )
+                self.append_buffer(self.edit_text[pos+1:self.edit_pos])
                 self.set_edit_text(
                     self._edit_text[:pos + 1]
                     + self._edit_text[self.edit_pos:]
@@ -208,9 +209,7 @@ class ReadlineEdit(urwid.Edit):
     def forward_kill_line(self):
         for pos in range(self.edit_pos, len(self.edit_text)):
             if self.edit_text[pos] == '\n':
-                self.append_buffer(
-                    self.edit_text[self.edit_pos:pos]
-                )
+                self.append_buffer(self.edit_text[self.edit_pos:pos])
                 self.set_edit_text(
                     self._edit_text[:self.edit_pos]
                     + self._edit_text[pos:]
