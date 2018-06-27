@@ -532,23 +532,26 @@ def test_undo(
     assert edit.text == expected_text
 
 
-@pytest.mark.parametrize('text, expected_buffer', [
+@pytest.mark.parametrize('text, expected_paste_buffer', [
     ('F', ['F']),
     ('FOO', ['FOO']),
 ])
-def test_append_buffer(text, expected_buffer):
+def test_append_buffer(text, expected_paste_buffer):
     edit = ReadlineEdit()
-    edit.append_buffer(text)
-    assert edit._buffer == expected_buffer
+    edit._append_paste_buffer(text)
+    assert edit._paste_buffer == expected_paste_buffer
 
 
-@pytest.mark.parametrize('buffer, text, pos, expected_pos, expected_text', [
-    (['OO'], 'F', 1, 3, 'FOO'),
-    (['BOO', 'FOO'], '', 0, 3, 'FOO')
-])
-def test_paste(buffer, text, pos, expected_pos, expected_text):
+@pytest.mark.parametrize(
+    'paste_buffer, text, pos, expected_pos, expected_text',
+    [
+        (['OO'], 'F', 1, 3, 'FOO'),
+        (['BOO', 'FOO'], '', 0, 3, 'FOO')
+    ]
+)
+def test_paste(paste_buffer, text, pos, expected_pos, expected_text):
     edit = ReadlineEdit(edit_text=text, edit_pos=pos)
-    edit._buffer = buffer
+    edit._paste_buffer = paste_buffer
     edit.paste()
     assert edit.edit_pos == expected_pos
     assert edit.edit_text == expected_text
