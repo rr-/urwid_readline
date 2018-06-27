@@ -208,7 +208,7 @@ class ReadlineEdit(urwid.Edit):
         if self._edit_pos < len(self._edit_text):
             self.set_edit_text(
                 self._edit_text[0:self._edit_pos]
-                + self._edit_text[self._edit_pos+1:]
+                + self._edit_text[self._edit_pos + 1:]
             )
 
     def backward_delete_char(self):
@@ -216,13 +216,15 @@ class ReadlineEdit(urwid.Edit):
             self.set_edit_pos(self._edit_pos - 1)
             self.set_edit_text(
                 self._edit_text[0:self._edit_pos]
-                + self._edit_text[self._edit_pos+1:]
+                + self._edit_text[self._edit_pos + 1:]
             )
 
     def backward_kill_line(self):
         for pos in reversed(range(0, self.edit_pos)):
             if self.edit_text[pos] == '\n':
-                self._paste_buffer.append(self.edit_text[pos+1:self.edit_pos])
+                self._paste_buffer.append(
+                    self.edit_text[pos + 1:self.edit_pos]
+                )
                 self.set_edit_text(
                     self._edit_text[:pos + 1]
                     + self._edit_text[self.edit_pos:]
@@ -250,7 +252,7 @@ class ReadlineEdit(urwid.Edit):
         self.backward_kill_line()
         self.forward_kill_line()
         if len(self._paste_buffer) - buffer_length == 2:
-            # If text was added from both forward and backword kill
+            # if text was added from both forward and backward kill
             self._paste_buffer[:2] = [''.join(self._paste_buffer[:2])]
 
     def backward_kill_word(self):
