@@ -120,12 +120,13 @@ class ReadlineEdit(urwid.Edit):
             'ctrl _':         self.undo,
         }
         if key in keymap:
-            self._save_state(key)
+            if keymap[key] != self.undo:
+                self._save_state()
             keymap[key]()
             self._invalidate()
             return None
         elif _is_valid_key(key):
-            self._save_state(key)
+            self._save_state()
             self._insert_char_at_cursor(key)
             self._invalidate()
             return None
@@ -143,8 +144,8 @@ class ReadlineEdit(urwid.Edit):
         self.set_edit_pos(0)
         self.set_edit_text('')
 
-    def _save_state(self, key):
-        if key != 'ctrl _' and (
+    def _save_state(self):
+        if (
                 self._undo_buffer.empty or
                 self._undo_buffer.cur.edit_text != self.edit_text
         ):
