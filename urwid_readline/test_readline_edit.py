@@ -472,6 +472,7 @@ def test_enable_autocomplete_clear_state():
         (['F', 'O', 'O'], 2, 'FO'),
         (['F', 'O', 'O', 'ctrl w'], 3, 'FOO'),
         (['F', 'O', 'O', 'ctrl w', 'ctrl _'], 2, 'FO'),
+        (['a', 's', 'd', 'ctrl u', 'ctrl u'], 3, 'asd'),
     ]
 )
 def test_undo(
