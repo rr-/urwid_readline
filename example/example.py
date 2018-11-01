@@ -23,7 +23,8 @@ def main():
     txt.enable_autocomplete(compl)
     fill = urwid.Filler(txt, 'top')
     loop = urwid.MainLoop(
-        fill, unhandled_input=lambda key: unhandled_input(txt, key))
+        fill, unhandled_input=lambda key: unhandled_input(txt, key)
+    )
     loop.run()
 
 

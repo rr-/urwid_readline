@@ -5,9 +5,8 @@ import urwid
 
 
 def _is_valid_key(char):
-    return (
-        urwid.util.is_wide_char(char, 0)
-        or (len(char) == 1 and ord(char) >= 32)
+    return urwid.util.is_wide_char(char, 0) or (
+        len(char) == 1 and ord(char) >= 32
     )
 
 
@@ -46,7 +45,7 @@ class UndoBuffer:
         return self.buffer[self.pos - 1]
 
     def push(self, old_state, new_state):
-        self.buffer = self.buffer[:self.pos]
+        self.buffer = self.buffer[: self.pos]
         if old_state.edit_text != new_state.edit_text:
             self.buffer.append((old_state, new_state))
         self.pos = len(self.buffer)
@@ -60,10 +59,10 @@ class ReadlineEdit(urwid.Edit):
     ignore_focus = False
 
     def __init__(
-            self,
-            *args,
-            word_chars=string.ascii_letters + string.digits + '_',
-            **kwargs
+        self,
+        *args,
+        word_chars=string.ascii_letters + string.digits + '_',
+        **kwargs
     ):
         super().__init__(*args, **kwargs)
         self._word_regex1 = re.compile(
@@ -94,41 +93,42 @@ class ReadlineEdit(urwid.Edit):
             return None if self.backward_char() else key
 
         keymap = {
-            'ctrl f':         self.forward_char,
-            'ctrl b':         self.backward_char,
-            'ctrl a':         self.beginning_of_line,
-            'ctrl e':         self.end_of_line,
-            'home':           self.beginning_of_line,
-            'end':            self.end_of_line,
-            'meta f':         self.forward_word,
-            'meta b':         self.backward_word,
-            'shift right':    self.forward_word,
-            'shift left':     self.backward_word,
-
-            'ctrl d':         self.delete_char,
-            'ctrl h':         self.backward_delete_char,
-            'delete':         self.delete_char,
-            'backspace':      self.backward_delete_char,
-            'ctrl u':         self.backward_kill_line,
-            'ctrl k':         self.forward_kill_line,
-            'meta x':         self.kill_whole_line,
-            'meta d':         self.kill_word,
-            'ctrl w':         self.backward_kill_word,
+            'ctrl f': self.forward_char,
+            'ctrl b': self.backward_char,
+            'ctrl a': self.beginning_of_line,
+            'ctrl e': self.end_of_line,
+            'home': self.beginning_of_line,
+            'end': self.end_of_line,
+            'meta f': self.forward_word,
+            'meta b': self.backward_word,
+            'shift right': self.forward_word,
+            'shift left': self.backward_word,
+            'ctrl d': self.delete_char,
+            'ctrl h': self.backward_delete_char,
+            'delete': self.delete_char,
+            'backspace': self.backward_delete_char,
+            'ctrl u': self.backward_kill_line,
+            'ctrl k': self.forward_kill_line,
+            'meta x': self.kill_whole_line,
+            'meta d': self.kill_word,
+            'ctrl w': self.backward_kill_word,
             'meta backspace': self.backward_kill_word,
-            'ctrl t':         self.transpose_chars,
-            'ctrl l':         self.clear_screen,
-            'ctrl y':         self.paste,
-            'ctrl _':         self.undo,
+            'ctrl t': self.transpose_chars,
+            'ctrl l': self.clear_screen,
+            'ctrl y': self.paste,
+            'ctrl _': self.undo,
         }
 
         if self.multiline:
-            keymap.update({
-                'up':             self.previous_line,
-                'ctrl p':         self.previous_line,
-                'ctrl n':         self.next_line,
-                'down':           self.next_line,
-                'enter':          self.insert_new_line,
-            })
+            keymap.update(
+                {
+                    'up': self.previous_line,
+                    'ctrl p': self.previous_line,
+                    'ctrl n': self.next_line,
+                    'down': self.next_line,
+                    'enter': self.insert_new_line,
+                }
+            )
 
         if key in keymap:
             if keymap[key] == self.undo:
@@ -147,9 +147,9 @@ class ReadlineEdit(urwid.Edit):
 
     def _insert_char_at_cursor(self, key):
         self.set_edit_text(
-            self._edit_text[0:self._edit_pos]
+            self._edit_text[0 : self._edit_pos]
             + key
-            + self._edit_text[self._edit_pos:]
+            + self._edit_text[self._edit_pos :]
         )
         self.set_edit_pos(self._edit_pos + 1)
 
@@ -185,9 +185,9 @@ class ReadlineEdit(urwid.Edit):
 
         text = self._paste_buffer[-1]
         self.set_edit_text(
-            self.edit_text[:self.edit_pos]
+            self.edit_text[: self.edit_pos]
             + text
-            + self.edit_text[self.edit_pos:]
+            + self.edit_text[self.edit_pos :]
         )
         self.set_edit_pos(self.edit_pos + len(text))
 
@@ -213,7 +213,7 @@ class ReadlineEdit(urwid.Edit):
 
     def backward_word(self):
         for match in self._word_regex1.finditer(
-                self._edit_text[0:self._edit_pos][::-1]
+            self._edit_text[0 : self._edit_pos][::-1]
         ):
             self.set_edit_pos(self._edit_pos - match.end(1))
             return
@@ -221,7 +221,7 @@ class ReadlineEdit(urwid.Edit):
 
     def forward_word(self):
         for match in self._word_regex2.finditer(
-                self._edit_text[self._edit_pos:]
+            self._edit_text[self._edit_pos :]
         ):
             self.set_edit_pos(self._edit_pos + match.end(1))
             return
@@ -230,45 +230,44 @@ class ReadlineEdit(urwid.Edit):
     def delete_char(self):
         if self._edit_pos < len(self._edit_text):
             self.set_edit_text(
-                self._edit_text[0:self._edit_pos]
-                + self._edit_text[self._edit_pos + 1:]
+                self._edit_text[0 : self._edit_pos]
+                + self._edit_text[self._edit_pos + 1 :]
             )
 
     def backward_delete_char(self):
         if self._edit_pos > 0:
             self.set_edit_pos(self._edit_pos - 1)
             self.set_edit_text(
-                self._edit_text[0:self._edit_pos]
-                + self._edit_text[self._edit_pos + 1:]
+                self._edit_text[0 : self._edit_pos]
+                + self._edit_text[self._edit_pos + 1 :]
             )
 
     def backward_kill_line(self):
         for pos in reversed(range(0, self.edit_pos)):
             if self.edit_text[pos] == '\n':
                 self._paste_buffer.append(
-                    self.edit_text[pos + 1:self.edit_pos]
+                    self.edit_text[pos + 1 : self.edit_pos]
                 )
                 self.set_edit_text(
-                    self._edit_text[:pos + 1]
-                    + self._edit_text[self.edit_pos:]
+                    self._edit_text[: pos + 1]
+                    + self._edit_text[self.edit_pos :]
                 )
                 self.edit_pos = pos + 1
                 return
-        self._paste_buffer.append(self.edit_text[:self.edit_pos])
-        self.set_edit_text(self._edit_text[self.edit_pos:])
+        self._paste_buffer.append(self.edit_text[: self.edit_pos])
+        self.set_edit_text(self._edit_text[self.edit_pos :])
         self.edit_pos = 0
 
     def forward_kill_line(self):
         for pos in range(self.edit_pos, len(self.edit_text)):
             if self.edit_text[pos] == '\n':
-                self._paste_buffer.append(self.edit_text[self.edit_pos:pos])
+                self._paste_buffer.append(self.edit_text[self.edit_pos : pos])
                 self.set_edit_text(
-                    self._edit_text[:self.edit_pos]
-                    + self._edit_text[pos:]
+                    self._edit_text[: self.edit_pos] + self._edit_text[pos:]
                 )
                 return
-        self._paste_buffer.append(self.edit_text[self.edit_pos:])
-        self.set_edit_text(self._edit_text[:self.edit_pos])
+        self._paste_buffer.append(self.edit_text[self.edit_pos :])
+        self.set_edit_text(self._edit_text[: self.edit_pos])
 
     def kill_whole_line(self):
         buffer_length = len(self._paste_buffer)
@@ -281,19 +280,17 @@ class ReadlineEdit(urwid.Edit):
     def backward_kill_word(self):
         pos = self._edit_pos
         self.backward_word()
-        self._paste_buffer.append(self._edit_text[self.edit_pos:pos])
+        self._paste_buffer.append(self._edit_text[self.edit_pos : pos])
         self.set_edit_text(
-            self._edit_text[:self._edit_pos]
-            + self._edit_text[pos:]
+            self._edit_text[: self._edit_pos] + self._edit_text[pos:]
         )
 
     def kill_word(self):
         pos = self._edit_pos
         self.forward_word()
-        self._paste_buffer.append(self.edit_text[pos:self.edit_pos])
+        self._paste_buffer.append(self.edit_text[pos : self.edit_pos])
         self.set_edit_text(
-            self._edit_text[0:pos]
-            + self._edit_text[self._edit_pos:]
+            self._edit_text[0:pos] + self._edit_text[self._edit_pos :]
         )
         self.set_edit_pos(pos)
 
@@ -306,8 +303,10 @@ class ReadlineEdit(urwid.Edit):
     def end_of_line(self):
         text_length = len(self.edit_text)
         # Move one character forward if at the end of a line.
-        if self.edit_pos < text_length and \
-                self.edit_text[self.edit_pos] == '\n':
+        if (
+            self.edit_pos < text_length
+            and self.edit_text[self.edit_pos] == '\n'
+        ):
             self.forward_char()
         # Set the position of cursor at the next '\n'.
         for pos in range(self.edit_pos, text_length + 1):
@@ -327,10 +326,10 @@ class ReadlineEdit(urwid.Edit):
             # Don't transpose in case of single character
             return
         self.set_edit_text(
-            self._edit_text[0:self._edit_pos - 2]
+            self._edit_text[0 : self._edit_pos - 2]
             + self._edit_text[self._edit_pos - 1]
             + self._edit_text[self._edit_pos - 2]
-            + self._edit_text[self._edit_pos:]
+            + self._edit_text[self._edit_pos :]
         )
 
     def insert_new_line(self):
@@ -348,13 +347,13 @@ class ReadlineEdit(urwid.Edit):
         if self._autocomplete_state:
             self._autocomplete_state.num += 1
         else:
-            text_before_caret = self.edit_text[0:self.edit_pos]
-            text_after_caret = self.edit_text[self.edit_pos:]
+            text_before_caret = self.edit_text[0 : self.edit_pos]
+            text_after_caret = self.edit_text[self.edit_pos :]
 
             group = re.escape(self._autocomplete_delims)
             match = re.match(
                 '^(?P<prefix>.*[' + group + '])(?P<infix>.*?)$',
-                text_before_caret
+                text_before_caret,
             )
             if match:
                 prefix = match.group('prefix')

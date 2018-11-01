@@ -5,15 +5,12 @@ setup(
     author_email='rr-@sakuya.pl',
     name='urwid_readline',
     description=(
-        'A textbox edit widget for urwid that supports readline shortcuts'),
+        'A textbox edit widget for urwid that supports readline shortcuts'
+    ),
     version='0.7',
     url='https://github.com/rr-/urwid_readline',
     packages=find_packages(),
-
-    install_requires=[
-        'urwid',
-    ],
-
+    install_requires=['urwid'],
     classifiers=[
         'Environment :: Console',
         'Development Status :: 4 - Beta',
@@ -26,4 +23,5 @@ setup(
         'Topic :: Software Development',
         'Topic :: Software Development :: Widget Sets',
         'Topic :: Software Development :: Libraries :: Python Modules',
-    ])
+    ],
+)
