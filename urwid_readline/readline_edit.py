@@ -79,23 +79,23 @@ class ReadlineEdit(urwid.Edit):
         self._undo_buffer = UndoBuffer()
         self.size = (30,)  # SET MAXCOL DEFAULT VALUE
 
-    def keypress(self, _size, key):
-        self.size = _size
+    def keypress(self, size, key):
+        self.size = size
         if key == 'tab' and self._autocomplete_func:
             self._complete()
             return None
         else:
             self._autocomplete_state = None
 
+        if key == 'right':
+            return None if self.forward_char() else key
+
+        if key == 'left':
+            return None if self.backward_char() else key
+
         keymap = {
             'ctrl f':         self.forward_char,
             'ctrl b':         self.backward_char,
-            'up':             self.previous_line,
-            'ctrl p':         self.previous_line,
-            'ctrl n':         self.next_line,
-            'down':           self.next_line,
-            'right':          self.forward_char,
-            'left':           self.backward_char,
             'ctrl a':         self.beginning_of_line,
             'ctrl e':         self.end_of_line,
             'home':           self.beginning_of_line,
@@ -116,11 +116,20 @@ class ReadlineEdit(urwid.Edit):
             'ctrl w':         self.backward_kill_word,
             'meta backspace': self.backward_kill_word,
             'ctrl t':         self.transpose_chars,
-            'enter':          self.insert_new_line,
             'ctrl l':         self.clear_screen,
             'ctrl y':         self.paste,
             'ctrl _':         self.undo,
         }
+
+        if self.multiline:
+            keymap.update({
+                'up':             self.previous_line,
+                'ctrl p':         self.previous_line,
+                'ctrl n':         self.next_line,
+                'down':           self.next_line,
+                'enter':          self.insert_new_line,
+            })
+
         if key in keymap:
             if keymap[key] == self.undo:
                 keymap[key]()
@@ -193,10 +202,14 @@ class ReadlineEdit(urwid.Edit):
     def backward_char(self):
         if self._edit_pos > 0:
             self.set_edit_pos(self._edit_pos - 1)
+            return True
+        return False
 
     def forward_char(self):
         if self._edit_pos < len(self._edit_text):
             self.set_edit_pos(self._edit_pos + 1)
+            return True
+        return False
 
     def backward_word(self):
         for match in self._word_regex1.finditer(
