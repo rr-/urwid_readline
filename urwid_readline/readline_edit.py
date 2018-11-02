@@ -1,6 +1,7 @@
 import contextlib
 import re
 import string
+
 import urwid
 
 
