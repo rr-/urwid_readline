@@ -436,7 +436,12 @@ def test_transpose(start_text, start_pos, end_text, end_pos):
         ),
     ],
 )
-def test_enable_autocomplete(start_text, start_pos, source, positions):
+@pytest.mark.parametrize("autocomplete_key", [None, "tab", "ctrl q"])
+def test_enable_autocomplete(
+    start_text, start_pos, source, positions, autocomplete_key
+):
+    keypress = autocomplete_key if autocomplete_key else "tab"
+
     def compl(text, state):
         tmp = (
             [c for c in source if c and c.startswith(text)] if text else source
@@ -447,10 +452,10 @@ def test_enable_autocomplete(start_text, start_pos, source, positions):
             return None
 
     edit = ReadlineEdit(edit_text=start_text, edit_pos=start_pos)
-    edit.enable_autocomplete(compl)
+    edit.enable_autocomplete(compl, key=autocomplete_key)
     for position in positions:
         expected_text, expected_pos = position
-        edit.keypress(None, "tab")
+        edit.keypress(None, keypress)
         assert edit.edit_text == expected_text
         assert edit.edit_pos == expected_pos
 
