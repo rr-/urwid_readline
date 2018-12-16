@@ -74,6 +74,7 @@ class ReadlineEdit(urwid.Edit):
         )
         self._autocomplete_state = None
         self._autocomplete_func = None
+        self._autocomplete_key = None
         self._autocomplete_delims = " \t\n;"
         self._paste_buffer = PasteBuffer()
         self._undo_buffer = UndoBuffer()
@@ -81,7 +82,7 @@ class ReadlineEdit(urwid.Edit):
 
     def keypress(self, size, key):
         self.size = size
-        if key == "tab" and self._autocomplete_func:
+        if key == self._autocomplete_key and self._autocomplete_func:
             self._complete()
             return None
         else:
@@ -337,8 +338,9 @@ class ReadlineEdit(urwid.Edit):
         if self.multiline:
             self.insert_text("\n")
 
-    def enable_autocomplete(self, func):
+    def enable_autocomplete(self, func, key=None):
         self._autocomplete_func = func
+        self._autocomplete_key = key if key is not None else "tab"
         self._autocomplete_state = None
 
     def set_completer_delims(self, delimiters):
