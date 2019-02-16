@@ -1,4 +1,5 @@
 import pytest
+
 from urwid_readline import ReadlineEdit
 
 

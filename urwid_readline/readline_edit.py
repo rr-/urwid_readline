@@ -80,21 +80,7 @@ class ReadlineEdit(urwid.Edit):
         self._undo_buffer = UndoBuffer()
         self.size = (30,)  # SET MAXCOL DEFAULT VALUE
 
-    def keypress(self, size, key):
-        self.size = size
-        if key == self._autocomplete_key and self._autocomplete_func:
-            self._complete()
-            return None
-        else:
-            self._autocomplete_state = None
-
-        if key == "right":
-            return None if self.forward_char() else key
-
-        if key == "left":
-            return None if self.backward_char() else key
-
-        keymap = {
+        self.keymap = {
             "ctrl f": self.forward_char,
             "ctrl b": self.backward_char,
             "ctrl a": self.beginning_of_line,
@@ -122,7 +108,7 @@ class ReadlineEdit(urwid.Edit):
         }
 
         if self.multiline:
-            keymap.update(
+            self.keymap.update(
                 {
                     "up": self.previous_line,
                     "ctrl p": self.previous_line,
@@ -132,12 +118,26 @@ class ReadlineEdit(urwid.Edit):
                 }
             )
 
-        if key in keymap:
-            if keymap[key] == self.undo:
-                keymap[key]()
+    def keypress(self, size, key):
+        self.size = size
+        if key == self._autocomplete_key and self._autocomplete_func:
+            self._complete()
+            return None
+        else:
+            self._autocomplete_state = None
+
+        if key == "right":
+            return None if self.forward_char() else key
+
+        if key == "left":
+            return None if self.backward_char() else key
+
+        if key in self.keymap:
+            if self.keymap[key] == self.undo:
+                self.keymap[key]()
             else:
                 with self._capture_undo():
-                    keymap[key]()
+                    self.keymap[key]()
             self._invalidate()
             return None
         elif _is_valid_key(key):
