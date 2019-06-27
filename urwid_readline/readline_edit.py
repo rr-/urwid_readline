@@ -117,8 +117,11 @@ class ReadlineEdit(urwid.Edit):
                     "enter": self.insert_new_line,
                 }
             )
+        self.block_keypress = False
 
     def keypress(self, size, key):
+        if self.block_keypress:
+            return
         self.size = size
         if key == self._autocomplete_key and self._autocomplete_func:
             self._complete()

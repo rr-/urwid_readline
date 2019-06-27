@@ -517,3 +517,13 @@ def test_paste(paste_buffer, text, pos, expected_pos, expected_text):
     edit.paste()
     assert edit.edit_pos == expected_pos
     assert edit.edit_text == expected_text
+
+@pytest.mark.parametrize(
+    "block, start_text, start_pos, end_pos",
+    [(True, "ab", 2, 2), (False, "ab", 2, 1)],
+)
+def test_block_keypress(block, start_text, start_pos, end_pos):
+    edit = ReadlineEdit(edit_text=start_text, edit_pos=start_pos)
+    edit.block_keypress = block
+    edit.keypress(edit.size, 'left')
+    assert edit.edit_pos == end_pos
