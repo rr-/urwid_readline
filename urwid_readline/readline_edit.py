@@ -357,6 +357,7 @@ class ReadlineEdit(urwid.Edit):
             match = re.match(
                 "^(?P<prefix>.*[" + group + "])(?P<infix>.*?)$",
                 text_before_caret,
+                flags=re.M | re.DOTALL,
             )
             if match:
                 prefix = match.group("prefix")

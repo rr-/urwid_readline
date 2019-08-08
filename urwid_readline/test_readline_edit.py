@@ -435,6 +435,16 @@ def test_transpose(start_text, start_pos, end_text, end_pos):
                 ("preceding s", 11),
             ],
         ),
+        (
+            "multiline\npreceding s\ntrailing",
+            21,
+            ["start", "stop", "next"],
+            [
+                ("multiline\npreceding start\ntrailing", 25),
+                ("multiline\npreceding stop\ntrailing", 24),
+                ("multiline\npreceding s\ntrailing", 21),
+            ],
+        ),
     ],
 )
 @pytest.mark.parametrize("autocomplete_key", [None, "tab", "ctrl q"])
