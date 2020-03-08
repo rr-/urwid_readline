@@ -15,7 +15,7 @@ def compl(text, state):
     tmp = [c for c in cmd if c and c.startswith(text)] if text else cmd
     try:
         return tmp[state]
-    except IndexError:
+    except (IndexError, TypeError):
         return None
 
 
