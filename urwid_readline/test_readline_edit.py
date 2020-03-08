@@ -459,7 +459,7 @@ def test_enable_autocomplete(
         )
         try:
             return tmp[state]
-        except IndexError:
+        except (IndexError, TypeError):
             return None
 
     edit = ReadlineEdit(edit_text=start_text, edit_pos=start_pos)
@@ -467,6 +467,88 @@ def test_enable_autocomplete(
     for position in positions:
         expected_text, expected_pos = position
         edit.keypress(None, keypress)
+        assert edit.edit_text == expected_text
+        assert edit.edit_pos == expected_pos
+
+
+@pytest.mark.parametrize(
+    "start_text, start_pos, edited",
+    [
+        ("", 0, [("forward", "start", 5), ("reverse", "", 0)]),
+        (
+            "",
+            0,
+            [
+                ("reverse", "next", 4),
+                ("reverse", "stop", 4),
+                ("reverse", "start", 5),
+                ("reverse", "", 0),
+            ],
+        ),
+        (
+            "",
+            0,
+            [
+                ("forward", "start", 5),
+                ("forward", "stop", 4),
+                ("forward", "next", 4),
+                ("reverse", "stop", 4),
+            ],
+        ),
+        (
+            "",
+            0,
+            [
+                ("forward", "start", 5),
+                ("forward", "stop", 4),
+                ("forward", "next", 4),
+                ("forward", "", 0),
+                ("forward", "start", 5),
+            ],
+        ),
+        ("", 0, [("reverse", "next", 4), ("forward", "", 0)],),
+        (
+            "st",
+            2,
+            [
+                ("forward", "start", 5),
+                ("reverse", "st", 2),
+                ("reverse", "stop", 4),
+            ],
+        ),
+    ],
+)
+@pytest.mark.parametrize(
+    "autocomplete_key, autocomplete_key_reverse",
+    [(None, None), ("tab", "shift tab"), ("ctrl q", "ctrl m"),],
+)
+def test_enable_autocomplete_reverse(
+    start_text, start_pos, edited, autocomplete_key, autocomplete_key_reverse
+):
+    source = ["start", "stop", "next"]
+    keypress = autocomplete_key if autocomplete_key else "tab"
+    keypress_reverse = (
+        autocomplete_key_reverse if autocomplete_key_reverse else "shift tab"
+    )
+
+    def compl(text, state):
+        tmp = (
+            [c for c in source if c and c.startswith(text)] if text else source
+        )
+        try:
+            return tmp[state]
+        except (IndexError, TypeError):
+            return None
+
+    edit = ReadlineEdit(edit_text=start_text, edit_pos=start_pos)
+    edit.enable_autocomplete(compl, key=keypress, key_reverse=keypress_reverse)
+
+    for direction, expected_text, expected_pos in edited:
+        if direction == "forward":
+            edit.keypress(None, keypress)
+        else:
+            edit.keypress(None, keypress_reverse)
+
         assert edit.edit_text == expected_text
         assert edit.edit_pos == expected_pos
 
@@ -480,7 +562,7 @@ def test_enable_autocomplete_clear_state():
         )
         try:
             return tmp[state]
-        except IndexError:
+        except (IndexError, TypeError):
             return None
 
     edit = ReadlineEdit(edit_text="s", edit_pos=1)

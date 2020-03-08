@@ -12,11 +12,11 @@ def _is_valid_key(char):
 
 
 class AutocompleteState:
-    def __init__(self, prefix, infix, suffix):
+    def __init__(self, prefix, infix, suffix, cycle_forward):
         self.prefix = prefix
         self.infix = infix
         self.suffix = suffix
-        self.num = 0
+        self.num = 0 if cycle_forward else -1
 
 
 class PasteBuffer(list):
@@ -75,6 +75,7 @@ class ReadlineEdit(urwid.Edit):
         self._autocomplete_state = None
         self._autocomplete_func = None
         self._autocomplete_key = None
+        self._autocomplete_key_reverse = None
         self._autocomplete_delims = " \t\n;"
         self._paste_buffer = PasteBuffer()
         self._undo_buffer = UndoBuffer()
@@ -121,7 +122,10 @@ class ReadlineEdit(urwid.Edit):
     def keypress(self, size, key):
         self.size = size
         if key == self._autocomplete_key and self._autocomplete_func:
-            self._complete()
+            self._complete(True)
+            return None
+        elif key == self._autocomplete_key_reverse and self._autocomplete_func:
+            self._complete(False)
             return None
         else:
             self._autocomplete_state = None
@@ -338,17 +342,25 @@ class ReadlineEdit(urwid.Edit):
         if self.multiline:
             self.insert_text("\n")
 
-    def enable_autocomplete(self, func, key=None):
+    def enable_autocomplete(self, func, key=None, key_reverse=None):
         self._autocomplete_func = func
         self._autocomplete_key = key if key is not None else "tab"
+        self._autocomplete_key_reverse = (
+            key_reverse if key_reverse is not None else "shift tab"
+        )
         self._autocomplete_state = None
 
     def set_completer_delims(self, delimiters):
         self._autocomplete_delims = delimiters
 
-    def _complete(self):
+    def _complete(self, cycle_forward):
         if self._autocomplete_state:
-            self._autocomplete_state.num += 1
+            if self._autocomplete_state.num == 0 and not cycle_forward:
+                self._autocomplete_state.num = None
+            elif self._autocomplete_state.num == -1 and cycle_forward:
+                self._autocomplete_state.num = None
+            else:
+                self._autocomplete_state.num += 1 if cycle_forward else -1
         else:
             text_before_caret = self.edit_text[0 : self.edit_pos]
             text_after_caret = self.edit_text[self.edit_pos :]
@@ -367,7 +379,9 @@ class ReadlineEdit(urwid.Edit):
                 infix = text_before_caret
             suffix = text_after_caret
 
-            self._autocomplete_state = AutocompleteState(prefix, infix, suffix)
+            self._autocomplete_state = AutocompleteState(
+                prefix, infix, suffix, cycle_forward
+            )
 
         state = self._autocomplete_state
 
