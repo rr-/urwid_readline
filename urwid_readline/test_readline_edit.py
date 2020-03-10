@@ -463,7 +463,10 @@ def test_enable_autocomplete(
             return None
 
     edit = ReadlineEdit(edit_text=start_text, edit_pos=start_pos)
-    edit.enable_autocomplete(compl, key=autocomplete_key)
+    kwargs = {}
+    if autocomplete_key:
+        kwargs["key"] = autocomplete_key
+    edit.enable_autocomplete(compl, **kwargs)
     for position in positions:
         expected_text, expected_pos = position
         edit.keypress(None, keypress)
@@ -472,7 +475,7 @@ def test_enable_autocomplete(
 
 
 @pytest.mark.parametrize(
-    "start_text, start_pos, edited",
+    "start_text, start_pos, edits",
     [
         ("", 0, [("forward", "start", 5), ("reverse", "", 0)]),
         (
@@ -523,7 +526,7 @@ def test_enable_autocomplete(
     [(None, None), ("tab", "shift tab"), ("ctrl q", "ctrl m"),],
 )
 def test_enable_autocomplete_reverse(
-    start_text, start_pos, edited, autocomplete_key, autocomplete_key_reverse
+    start_text, start_pos, edits, autocomplete_key, autocomplete_key_reverse
 ):
     source = ["start", "stop", "next"]
     keypress = autocomplete_key if autocomplete_key else "tab"
@@ -541,9 +544,14 @@ def test_enable_autocomplete_reverse(
             return None
 
     edit = ReadlineEdit(edit_text=start_text, edit_pos=start_pos)
-    edit.enable_autocomplete(compl, key=keypress, key_reverse=keypress_reverse)
+    kwargs = {}
+    if autocomplete_key:
+        kwargs["key"] = autocomplete_key
+    if autocomplete_key_reverse:
+        kwargs["key_reverse"] = autocomplete_key_reverse
+    edit.enable_autocomplete(compl, **kwargs)
 
-    for direction, expected_text, expected_pos in edited:
+    for direction, expected_text, expected_pos in edits:
         if direction == "forward":
             edit.keypress(None, keypress)
         else:

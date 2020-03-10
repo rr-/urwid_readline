@@ -342,12 +342,10 @@ class ReadlineEdit(urwid.Edit):
         if self.multiline:
             self.insert_text("\n")
 
-    def enable_autocomplete(self, func, key=None, key_reverse=None):
+    def enable_autocomplete(self, func, key="tab", key_reverse="shift tab"):
         self._autocomplete_func = func
-        self._autocomplete_key = key if key is not None else "tab"
-        self._autocomplete_key_reverse = (
-            key_reverse if key_reverse is not None else "shift tab"
-        )
+        self._autocomplete_key = key
+        self._autocomplete_key_reverse = key_reverse
         self._autocomplete_state = None
 
     def set_completer_delims(self, delimiters):
