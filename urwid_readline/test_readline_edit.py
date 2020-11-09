@@ -509,7 +509,11 @@ def test_enable_autocomplete(
                 ("forward", "start", 5),
             ],
         ),
-        ("", 0, [("reverse", "next", 4), ("forward", "", 0)],),
+        (
+            "",
+            0,
+            [("reverse", "next", 4), ("forward", "", 0)],
+        ),
         (
             "st",
             2,
@@ -523,7 +527,11 @@ def test_enable_autocomplete(
 )
 @pytest.mark.parametrize(
     "autocomplete_key, autocomplete_key_reverse",
-    [(None, None), ("tab", "shift tab"), ("ctrl q", "ctrl m"),],
+    [
+        (None, None),
+        ("tab", "shift tab"),
+        ("ctrl q", "ctrl m"),
+    ],
 )
 def test_enable_autocomplete_reverse(
     start_text, start_pos, edits, autocomplete_key, autocomplete_key_reverse
