@@ -12,6 +12,16 @@ Example how to use the program can be found in the
 [examples](https://github.com/rr-/urwid_readline/blob/master/example/)
 directory.
 
+### Development
+
+Please ensure pull requests pass CI, which requires your code to be formatted
+with `black .` and tests to pass via `pytest`.
+
+Both tools can be installed with the `dev` extra install option; such an
+install from a local git repo reflecting the code (ie. 'editable'), ideally in
+a python virtual environment, can be achieved through a command like
+`python3 -m pip install --editable .[dev]`.
+
 ### Features
 
 Supported operations:
