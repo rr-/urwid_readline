@@ -603,24 +603,31 @@ def test_enable_autocomplete_clear_state(completion_func_for_source):
 
 
 @pytest.mark.parametrize(
-    "delimiters, final_phrase",
+    "autocomplete_delimiters, word_separator, final_phrase",
     [
-        (None, "firstw firstw secondw"),
-        (";", "firstw secondw"),
+        (None, " ", "firstw firstw secondw"),
+        (None, ";", "firstw;firstw;secondw"),
+        (";", " ", "firstw secondw"),
+        (";", ";", "firstw;firstw;secondw"),
+        ("#", " ", "firstw secondw"),
     ],
     ids=[
-        "default:space/tab/newline/semicolon",
-        "custom:semicolon",
+        "default:space/tab/newline/semicolon-space",
+        "default:space/tab/newline/semicolon-semicolon",
+        "custom:semicolon-space",
+        "custom:semicolon-semicolon",
+        "custom:hash-space",
     ],
 )
 def test_autocomplete_delimiters(
     completion_func_for_source,
-    delimiters,
+    autocomplete_delimiters,
+    word_separator,
     final_phrase,
     word1="firstw",
     word2="secondw",
 ):
-    phrase = " ".join([word1, word2])
+    phrase = word_separator.join([word1, word2])
     phrase_length = len(phrase)
 
     source = [phrase]
@@ -629,8 +636,8 @@ def test_autocomplete_delimiters(
 
     edit = ReadlineEdit(edit_text=word1, edit_pos=len(word1))
     edit.enable_autocomplete(compl)
-    if delimiters is not None:
-        edit.set_completer_delims(delimiters)
+    if autocomplete_delimiters is not None:
+        edit.set_completer_delims(autocomplete_delimiters)
 
     # Completion from word1 to phrase
     edit.keypress(edit.size, "tab")
@@ -640,10 +647,10 @@ def test_autocomplete_delimiters(
     # Backspace to after word1 + space
     for _ in range(len(word2)):
         edit.keypress(edit.size, "backspace")
-    assert edit.edit_text == word1 + " "
+    assert edit.edit_text == word1 + word_separator
     assert edit.edit_pos == len(word1) + 1
 
-    # Completion from word1 + space
+    # Completion from word1 + word_separator
     edit.keypress(edit.size, "tab")
     assert edit.edit_text == final_phrase
     assert edit.edit_pos == len(final_phrase)
