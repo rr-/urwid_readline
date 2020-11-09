@@ -603,6 +603,53 @@ def test_enable_autocomplete_clear_state(completion_func_for_source):
 
 
 @pytest.mark.parametrize(
+    "delimiters, final_phrase",
+    [
+        (None, "firstw firstw secondw"),
+        (";", "firstw secondw"),
+    ],
+    ids=[
+        "default:space/tab/newline/semicolon",
+        "custom:semicolon",
+    ],
+)
+def test_autocomplete_delimiters(
+    completion_func_for_source,
+    delimiters,
+    final_phrase,
+    word1="firstw",
+    word2="secondw",
+):
+    phrase = " ".join([word1, word2])
+    phrase_length = len(phrase)
+
+    source = [phrase]
+
+    compl = completion_func_for_source(source)
+
+    edit = ReadlineEdit(edit_text=word1, edit_pos=len(word1))
+    edit.enable_autocomplete(compl)
+    if delimiters is not None:
+        edit.set_completer_delims(delimiters)
+
+    # Completion from word1 to phrase
+    edit.keypress(edit.size, "tab")
+    assert edit.edit_text == phrase
+    assert edit.edit_pos == phrase_length
+
+    # Backspace to after word1 + space
+    for _ in range(len(word2)):
+        edit.keypress(edit.size, "backspace")
+    assert edit.edit_text == word1 + " "
+    assert edit.edit_pos == len(word1) + 1
+
+    # Completion from word1 + space
+    edit.keypress(edit.size, "tab")
+    assert edit.edit_text == final_phrase
+    assert edit.edit_pos == len(final_phrase)
+
+
+@pytest.mark.parametrize(
     "keys, expected_edit_pos, expected_text",
     [
         ([], 0, ""),
