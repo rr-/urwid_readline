@@ -372,6 +372,25 @@ def test_transpose(start_text, start_pos, end_text, end_pos):
     assert edit.edit_pos == end_pos
 
 
+@pytest.fixture
+def completion_func_for_source():
+    def _factory(source):
+        def compl(text, state):
+            tmp = (
+                [c for c in source if c and c.startswith(text)]
+                if text
+                else source
+            )
+            try:
+                return tmp[state]
+            except (IndexError, TypeError):
+                return None
+
+        return compl
+
+    return _factory
+
+
 @pytest.mark.parametrize(
     "start_text, start_pos, source, positions",
     [
@@ -449,18 +468,16 @@ def test_transpose(start_text, start_pos, end_text, end_pos):
 )
 @pytest.mark.parametrize("autocomplete_key", [None, "tab", "ctrl q"])
 def test_enable_autocomplete(
-    start_text, start_pos, source, positions, autocomplete_key
+    completion_func_for_source,
+    start_text,
+    start_pos,
+    source,
+    positions,
+    autocomplete_key,
 ):
     keypress = autocomplete_key if autocomplete_key else "tab"
 
-    def compl(text, state):
-        tmp = (
-            [c for c in source if c and c.startswith(text)] if text else source
-        )
-        try:
-            return tmp[state]
-        except (IndexError, TypeError):
-            return None
+    compl = completion_func_for_source(source)
 
     edit = ReadlineEdit(edit_text=start_text, edit_pos=start_pos)
     kwargs = {}
@@ -534,7 +551,12 @@ def test_enable_autocomplete(
     ],
 )
 def test_enable_autocomplete_reverse(
-    start_text, start_pos, edits, autocomplete_key, autocomplete_key_reverse
+    completion_func_for_source,
+    start_text,
+    start_pos,
+    edits,
+    autocomplete_key,
+    autocomplete_key_reverse,
 ):
     source = ["start", "stop", "next"]
     keypress = autocomplete_key if autocomplete_key else "tab"
@@ -542,14 +564,7 @@ def test_enable_autocomplete_reverse(
         autocomplete_key_reverse if autocomplete_key_reverse else "shift tab"
     )
 
-    def compl(text, state):
-        tmp = (
-            [c for c in source if c and c.startswith(text)] if text else source
-        )
-        try:
-            return tmp[state]
-        except (IndexError, TypeError):
-            return None
+    compl = completion_func_for_source(source)
 
     edit = ReadlineEdit(edit_text=start_text, edit_pos=start_pos)
     kwargs = {}
@@ -569,17 +584,10 @@ def test_enable_autocomplete_reverse(
         assert edit.edit_pos == expected_pos
 
 
-def test_enable_autocomplete_clear_state():
+def test_enable_autocomplete_clear_state(completion_func_for_source):
     source = ["start", "stop", "next"]
 
-    def compl(text, state):
-        tmp = (
-            [c for c in source if c and c.startswith(text)] if text else source
-        )
-        try:
-            return tmp[state]
-        except (IndexError, TypeError):
-            return None
+    compl = completion_func_for_source(source)
 
     edit = ReadlineEdit(edit_text="s", edit_pos=1)
     edit.enable_autocomplete(compl)
