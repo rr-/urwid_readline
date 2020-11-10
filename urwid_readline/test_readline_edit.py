@@ -610,6 +610,8 @@ def test_enable_autocomplete_clear_state(completion_func_for_source):
         (";", " ", "firstw secondw"),
         (";", ";", "firstw;firstw;secondw"),
         ("#", " ", "firstw secondw"),
+        ("", " ", "firstw secondw"),
+        ("", "-", "firstw-secondw"),
     ],
     ids=[
         "default:space/tab/newline/semicolon-space",
@@ -617,6 +619,8 @@ def test_enable_autocomplete_clear_state(completion_func_for_source):
         "custom:semicolon-space",
         "custom:semicolon-semicolon",
         "custom:hash-space",
+        "no delimiters-space",  # matches from start of text box
+        "no delimiters-hyphen",  # matches from start of text box
     ],
 )
 def test_autocomplete_delimiters(

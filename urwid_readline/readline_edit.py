@@ -363,18 +363,31 @@ class ReadlineEdit(urwid.Edit):
             text_before_caret = self.edit_text[0 : self.edit_pos]
             text_after_caret = self.edit_text[self.edit_pos :]
 
-            group = re.escape(self._autocomplete_delims)
-            match = re.match(
-                "^(?P<prefix>.*[" + group + "])(?P<infix>.*?)$",
-                text_before_caret,
-                flags=re.M | re.DOTALL,
-            )
-            if match:
-                prefix = match.group("prefix")
-                infix = match.group("infix")
+            if self._autocomplete_delims:
+                group = re.escape(self._autocomplete_delims)
+                match = re.match(
+                    "^(?P<prefix>.*[" + group + "])(?P<infix>.*?)$",
+                    text_before_caret,
+                    flags=re.M | re.DOTALL,
+                )
+                if match:
+                    prefix = match.group("prefix")
+                    infix = match.group("infix")
+                else:
+                    prefix = ""
+                    infix = text_before_caret
             else:
+                match = re.match(
+                    "^(?P<infix>.*?)$",
+                    text_before_caret,
+                    flags=re.M | re.DOTALL,
+                )
                 prefix = ""
-                infix = text_before_caret
+                if match:
+                    infix = match.group("infix")
+                else:
+                    infix = text_before_caret
+
             suffix = text_after_caret
 
             self._autocomplete_state = AutocompleteState(
