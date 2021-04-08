@@ -63,8 +63,11 @@ class ReadlineEdit(urwid.Edit):
         self,
         *args,
         word_chars=string.ascii_letters + string.digits + "_",
+        max_char=None,
         **kwargs
     ):
+        if max_char and "edit_text" in kwargs:
+            kwargs["edit_text"] = kwargs["edit_text"][:max_char]
         super().__init__(*args, **kwargs)
         self._word_regex1 = re.compile(
             "([%s]+)" % "|".join(re.escape(ch) for ch in word_chars)
@@ -77,6 +80,7 @@ class ReadlineEdit(urwid.Edit):
         self._autocomplete_key = None
         self._autocomplete_key_reverse = None
         self._autocomplete_delims = " \t\n;"
+        self._max_char = max_char
         self._paste_buffer = PasteBuffer()
         self._undo_buffer = UndoBuffer()
         self.size = (30,)  # SET MAXCOL DEFAULT VALUE
@@ -152,6 +156,9 @@ class ReadlineEdit(urwid.Edit):
         return key
 
     def _insert_char_at_cursor(self, key):
+        if self._max_char and len(self.edit_text) == self._max_char:
+            return
+
         self.set_edit_text(
             self._edit_text[0 : self._edit_pos]
             + key
@@ -190,6 +197,10 @@ class ReadlineEdit(urwid.Edit):
             return
 
         text = self._paste_buffer[-1]
+        if self._max_char:
+            chars_left = self._max_char - len(self.edit_text)
+            text = text[:chars_left]
+
         self.set_edit_text(
             self.edit_text[: self.edit_pos]
             + text

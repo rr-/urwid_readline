@@ -682,12 +682,36 @@ def test_undo(keys, expected_edit_pos, expected_text):
 
 
 @pytest.mark.parametrize(
-    "paste_buffer, text, pos, expected_pos, expected_text",
-    [(["OO"], "F", 1, 3, "FOO"), (["BOO", "FOO"], "", 0, 3, "FOO")],
+    "paste_buffer, text, max_char, pos, expected_pos, expected_text",
+    [
+        (["OO"], "F", None, 1, 3, "FOO"),
+        (["BOO", "FOO"], "", None, 0, 3, "FOO"),
+        (["BCDE"], "A", 3, 1, 3, "ABC"),
+        (["FOO", "BOO", "FOOBAR"], "", 3, 0, 3, "FOO"),
+        (["FOOBAR"], "BAR", 3, 0, 0, "BAR"),
+    ],
 )
-def test_paste(paste_buffer, text, pos, expected_pos, expected_text):
-    edit = ReadlineEdit(edit_text=text, edit_pos=pos)
+def test_paste(paste_buffer, text, max_char, pos, expected_pos, expected_text):
+    edit = ReadlineEdit(edit_text=text, max_char=max_char, edit_pos=pos)
     edit._paste_buffer[:] = paste_buffer
     edit.paste()
+    assert edit.edit_pos == expected_pos
+    assert edit.edit_text == expected_text
+
+
+@pytest.mark.parametrize(
+    "text, key, max_char, pos, expected_pos, expected_text",
+    [
+        ("FOAA", "S", None, 4, 5, "FOAAS"),
+        ("FOOBAR", "A", 3, 3, 3, "FOO"),
+        ("OO", "F", 3, 0, 1, "FOO"),
+        ("ABCDE", "F", 4, 3, 3, "ABCD"),
+    ],
+)
+def test_insert_char_at_cursor(
+    text, key, max_char, pos, expected_pos, expected_text
+):
+    edit = ReadlineEdit(edit_text=text, max_char=max_char, edit_pos=pos)
+    edit._insert_char_at_cursor(key)
     assert edit.edit_pos == expected_pos
     assert edit.edit_text == expected_text
