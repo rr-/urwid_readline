@@ -115,10 +115,6 @@ class ReadlineEdit(urwid.Edit):
         if self.multiline:
             self.keymap.update(
                 {
-                    "up": self.previous_line,
-                    "ctrl p": self.previous_line,
-                    "ctrl n": self.next_line,
-                    "down": self.next_line,
                     "enter": self.insert_new_line,
                 }
             )
@@ -139,6 +135,12 @@ class ReadlineEdit(urwid.Edit):
 
         if key == "left":
             return None if self.backward_char() else key
+
+        if key == "up" or key == "ctrl p":
+            return None if self.previous_line() else key
+
+        if key == "down" or key == "ctrl n":
+            return None if self.next_line() else key
 
         if key in self.keymap:
             if self.keymap[key] == self.undo:
@@ -210,11 +212,11 @@ class ReadlineEdit(urwid.Edit):
 
     def previous_line(self):
         x, y = self.get_cursor_coords(self.size)
-        self.move_cursor_to_coords(self.size, x, max(0, y - 1))
+        return self.move_cursor_to_coords(self.size, x, max(0, y - 1))
 
     def next_line(self):
         x, y = self.get_cursor_coords(self.size)
-        self.move_cursor_to_coords(self.size, x, y + 1)
+        return self.move_cursor_to_coords(self.size, x, y + 1)
 
     def backward_char(self):
         if self._edit_pos > 0:
