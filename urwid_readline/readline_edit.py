@@ -6,7 +6,7 @@ import urwid
 
 
 def _is_valid_key(char):
-    return urwid.util.is_wide_char(char, 0) or (
+    return urwid.is_wide_char(char, 0) or (
         len(char) == 1 and ord(char) >= 32
     )
 
