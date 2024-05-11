@@ -212,7 +212,7 @@ class ReadlineEdit(urwid.Edit):
 
     def previous_line(self):
         x, y = self.get_cursor_coords(self.size)
-        return self.move_cursor_to_coords(self.size, x, max(0, y - 1))
+        return self.move_cursor_to_coords(self.size, x, y - 1)
 
     def next_line(self):
         x, y = self.get_cursor_coords(self.size)
